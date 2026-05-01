@@ -1,26 +1,23 @@
-// js/db.js
-const db = new Dexie("HortaDB");
+const db = new Dexie("HortaMasterDB");
 
-// Definimos as tabelas. O "++id" significa que é um ID auto-incremento.
 db.version(1).stores({
     zonas: '++id, nome, tipo, icone',
-    especies: '++id, nome, familia',
-    cultivos: '++id, zonaId, especieId, dataPlantio',
-    colheitas: '++id, cultivoId, data, peso',
-    notas: '++id, titulo, categoria'
+    especies: '++id, nome, luaIdeal, tempoCrescimento',
+    cultivos: '++id, zonaId, especieId, dataInicio',
+    colheitas: '++id, data, peso, qualidade'
 });
 
-// Função para garantir que temos algumas zonas iniciais se estiver vazio
-async function inicializarDados() {
-    const count = await db.zonas.count();
+// Seed data para a Wiki (Já vem com espécies comuns)
+async function popularWiki() {
+    const count = await db.especies.count();
     if (count === 0) {
-        await db.zonas.bulkAdd([
-            { nome: "Canteiro Norte", tipo: "Terra", icone: "🌿" },
-            { nome: "Estufa Principal", tipo: "Coberto", icone: "🏠" },
-            { nome: "Vasos Varanda", tipo: "Vaso", icone: "🪴" }
+        await db.especies.bulkAdd([
+            { nome: "Alface", luaIdeal: "Crescente", icon: "🥬" },
+            { nome: "Tomate", luaIdeal: "Crescente", icon: "🍅" },
+            { nome: "Cenoura", luaIdeal: "Minguante", icon: "🥕" },
+            { nome: "Batata", luaIdeal: "Minguante", icon: "🥔" }
         ]);
-        console.log("Zonas iniciais criadas!");
     }
 }
 
-inicializarDados();
+popularWiki();
