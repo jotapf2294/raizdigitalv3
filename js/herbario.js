@@ -1,6 +1,6 @@
 /**
- * Códice do Jota — Herbário Vivo (versão evoluída)
- * CRUD + categorias + pesquisa viva
+ * Códice do Jota — Herbário Vivo (UI evoluída)
+ * Tablet-friendly + categorias + colapsável + pesquisa viva
  */
 
 import { db, addLog } from './db.js';
@@ -80,36 +80,35 @@ export function getPlantas() {
 }
 
 /* =========================================================
-   🧠 FILTRO / PESQUISA
-========================================================= */
-
-function filterPlantas(plantas, query) {
-  if (!query) return plantas;
-
-  const q = query.toLowerCase();
-
-  return plantas.filter(p =>
-    (p.nome || '').toLowerCase().includes(q) ||
-    (p.familia || '').toLowerCase().includes(q) ||
-    (p.tipo || '').toLowerCase().includes(q) ||
-    (p.latin || '').toLowerCase().includes(q)
-  );
-}
-
-/* =========================================================
-   🌿 EMOJI POR TIPO
+   🌿 HELPERS
 ========================================================= */
 
 function getTipoEmoji(tipo) {
   const map = {
-    'folha': '🌿',
-    'fruto': '🍅',
-    'raiz': '🥕',
-    'aromatica': '🌱',
-    'leguminosa': '🌾'
+    folha: '🌿',
+    fruto: '🍅',
+    raiz: '🥕',
+    aromatica: '🌱',
+    leguminosa: '🌾'
   };
 
   return map[(tipo || '').toLowerCase()] || '🌱';
+}
+
+/* =========================================================
+   🌿 AGRUPAR POR TIPO
+========================================================= */
+
+function groupByTipo(plantas) {
+  const groups = {};
+
+  plantas.forEach(p => {
+    const key = p.tipo || 'outros';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(p);
+  });
+
+  return groups;
 }
 
 /* =========================================================
@@ -119,6 +118,8 @@ function getTipoEmoji(tipo) {
 export async function renderHerbario() {
   const plantas = await getPlantas();
 
+  const grupos = groupByTipo(plantas);
+
   return `
     <section class="herbario">
 
@@ -126,55 +127,79 @@ export async function renderHerbario() {
 
       <!-- 🔍 SEARCH -->
       <div class="card">
-        <input id="herbSearch" placeholder="🔍 Procurar planta..." />
+        <input
+          id="herbSearch"
+          placeholder="🔍 Procurar planta..."
+          style="width:100%; padding:1rem; font-size:1rem;"
+        />
       </div>
 
-      <!-- FORM -->
-      <form id="plantaForm" class="card">
-        <h3>Adicionar Planta</h3>
+      <!-- 🌱 FORM -->
+      <form id="plantaForm" class="card herb-form">
 
-        <input name="nome" placeholder="Nome" required />
-        <input name="latin" placeholder="Latim" />
-        <input name="familia" placeholder="Família" />
+        <h3>🌱 Adicionar Planta</h3>
 
-        <select name="tipo">
-          <option value="">Tipo</option>
-          <option value="folha">Folha 🌿</option>
-          <option value="fruto">Fruto 🍅</option>
-          <option value="raiz">Raiz 🥕</option>
-          <option value="aromatica">Aromática 🌱</option>
-          <option value="leguminosa">Leguminosa 🌾</option>
-        </select>
+        <div class="grid-form">
+          <input name="nome" placeholder="Nome" required />
+          <input name="latin" placeholder="Latim" />
+          <input name="familia" placeholder="Família" />
 
-        <input name="ciclo" placeholder="Ciclo" />
-        <input name="agua" placeholder="Água" />
+          <select name="tipo">
+            <option value="">Tipo</option>
+            <option value="folha">Folha 🌿</option>
+            <option value="fruto">Fruto 🍅</option>
+            <option value="raiz">Raiz 🥕</option>
+            <option value="aromatica">Aromática 🌱</option>
+            <option value="leguminosa">Leguminosa 🌾</option>
+          </select>
 
-        <textarea name="notas" placeholder="Segredos"></textarea>
+          <input name="ciclo" placeholder="Ciclo" />
+          <input name="agua" placeholder="Água" />
+        </div>
 
-        <button type="submit">🌱 Guardar</button>
+        <textarea name="notas" placeholder="Segredos do cultivo"></textarea>
+
+        <button type="submit">🌱 Guardar Planta</button>
       </form>
 
-      <!-- LISTA -->
-      <div id="herbList" class="lista-herbario">
+      <!-- 🌿 LISTA AGRUPADA -->
+      <div class="herb-groups">
 
-        ${plantas.map(p => `
-          <div class="card herb-item" data-name="${p.nome}" data-family="${p.familia}" data-type="${p.tipo}">
+        ${Object.entries(grupos).map(([tipo, items]) => `
+          
+          <details open class="herb-group">
 
-            <h3>
-              ${getTipoEmoji(p.tipo)} ${p.nome}
-            </h3>
+            <summary>
+              ${getTipoEmoji(tipo)} ${tipo.toUpperCase()} (${items.length})
+            </summary>
 
-            <p><em>${p.latin || ''}</em></p>
+            <div class="herb-group-content">
 
-            <p>📚 Família: ${p.familia || '—'}</p>
-            <p>🌿 Tipo: ${p.tipo || '—'}</p>
-            <p>💧 Água: ${p.agua || '—'}</p>
+              ${items.map(p => `
+                <div class="card herb-item">
 
-            ${p.notas ? `<p>🪶 ${p.notas}</p>` : ''}
+                  <h3>${getTipoEmoji(p.tipo)} ${p.nome}</h3>
+                  <p><em>${p.latin || ''}</em></p>
 
-            <button data-delete="${p.id}">🪓 Remover</button>
+                  <div class="meta">
+                    <span>📚 ${p.familia || '—'}</span>
+                    <span>💧 ${p.agua || '—'}</span>
+                    <span>🌿 ${p.ciclo || '—'}</span>
+                  </div>
 
-          </div>
+                  ${p.notas ? `<p class="notes">🪶 ${p.notas}</p>` : ''}
+
+                  <button data-delete="${p.id}">
+                    🪓 Remover
+                  </button>
+
+                </div>
+              `).join('')}
+
+            </div>
+
+          </details>
+
         `).join('')}
 
       </div>
@@ -213,18 +238,13 @@ export function bindHerbarioEvents() {
     });
   });
 
-  /* 🔍 SEARCH LIVE */
+  /* 🔍 SEARCH */
   if (search) {
     search.addEventListener('input', () => {
       const q = search.value.toLowerCase();
 
       document.querySelectorAll('.herb-item').forEach(item => {
-        const text = (
-          item.dataset.name +
-          item.dataset.family +
-          item.dataset.type
-        ).toLowerCase();
-
+        const text = item.innerText.toLowerCase();
         item.style.display = text.includes(q) ? 'block' : 'none';
       });
     });
