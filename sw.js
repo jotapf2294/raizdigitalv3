@@ -1,14 +1,10 @@
 /**
  * Códice do Jota — Guardião Offline
- * Service Worker: protege o grimório da rede instável
+ * Service Worker: offline-first robusto
  */
 
-const CACHE_NAME = 'codice-cache-v1';
+const CACHE_NAME = 'codice-cache-v2';
 
-/**
- * Ficheiros essenciais do Códice
- * (shell da aplicação)
- */
 const ASSETS = [
   '/',
   '/index.html',
@@ -18,36 +14,40 @@ const ASSETS = [
   '/js/ui.js',
   '/js/lunar.js',
   '/js/db.js',
-  '/js/seed.js'
+  '/js/seed.js',
+  '/js/talhoes.js',
+  '/js/herbario.js',
+  '/js/notas.js',
+  '/js/instrumentos.js',
+  '/js/portico.js'
 ];
 
-/**
- * INSTALAÇÃO — grava o Códice no cache
- */
+/* =========================================================
+   📦 INSTALL
+========================================================= */
+
 self.addEventListener('install', (event) => {
-  console.log('🛡️ SW: a instalar o Códice no cache');
+  console.log('🛡️ SW: instalação do Códice');
 
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
 
   self.skipWaiting();
 });
 
-/**
- * ATIVAÇÃO — limpa caches antigos
- */
+/* =========================================================
+   ⚡ ACTIVATE
+========================================================= */
+
 self.addEventListener('activate', (event) => {
-  console.log('⚡ SW: ativado');
+  console.log('⚡ SW: ativo');
 
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
-            console.log('🧹 SW: a remover cache antigo', key);
             return caches.delete(key);
           }
         })
@@ -58,31 +58,33 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-/**
- * FETCH — intercepta pedidos
- * Estratégia: Cache First (offline-first real)
- */
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) {
-        return cached;
-      }
+/* =========================================================
+   🌐 FETCH (offline-first seguro)
+========================================================= */
 
-      return fetch(event.request)
-        .then((response) => {
-          // Clonar resposta para guardar no cache
-          const responseClone = response.clone();
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+
+  // só GET (evita problemas com POST/PUT)
+  if (req.method !== 'GET') return;
+
+  event.respondWith(
+    caches.match(req).then((cached) => {
+      if (cached) return cached;
+
+      return fetch(req)
+        .then((res) => {
+          const copy = res.clone();
 
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
+            cache.put(req, copy);
           });
 
-          return response;
+          return res;
         })
         .catch(() => {
-          // fallback silencioso (offline absoluto)
-          if (event.request.destination === 'document') {
+          // fallback apenas para navegação
+          if (req.destination === 'document') {
             return caches.match('/index.html');
           }
         });
