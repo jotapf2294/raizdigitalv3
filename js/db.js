@@ -1,24 +1,41 @@
 /**
  * DATABASE ENGINE - js/db.js
+ * Configuração da estrutura de dados local.
  */
 const db = new Dexie("MinhaHortaDB");
 
-// Definimos o schema com os campos que a tua Wiki precisa
 db.version(1).stores({
-    especies: '++id, nome, categoria, emoji, lua, rega, sol, meses',
+    // Adicionado campo 'notas' para a Wiki
+    especies: '++id, nome, categoria, lua, rega, sol, meses, notas',
     zonas: '++id, nome, icon',
     colheitas: '++id, nome, peso, data',
     notas: '++id, titulo, data'
 });
 
-// Seed data opcional: Para a Wiki não aparecer vazia na primeira vez
+// Dados iniciais para não começar vazio
 db.on("populate", () => {
     db.especies.bulkAdd([
-        { nome: "Tomate", categoria: "Frutos", emoji: "🍅", lua: "Crescente", rega: "Alta", sol: "Pleno", meses: "Mar-Jun" },
-        { nome: "Alface", categoria: "Folhas", emoji: "🥬", lua: "Crescente", rega: "Média", sol: "Meia-sombra", meses: "Ano inteiro" }
+        { 
+            nome: "Tomate", 
+            categoria: "Frutos", 
+            lua: "Crescente", 
+            rega: "Alta", 
+            sol: "Pleno", 
+            meses: "Mar-Jun", 
+            notas: "Necessita de estacas para suporte." 
+        },
+        { 
+            nome: "Alface", 
+            categoria: "Folhas", 
+            lua: "Crescente", 
+            rega: "Média", 
+            sol: "Meia-sombra", 
+            meses: "Ano inteiro", 
+            notas: "Cuidado com os caracóis em dias de chuva." 
+        }
     ]);
 });
 
 db.open().catch(err => {
-    console.error("Erro ao abrir base de dados:", err.stack);
+    console.error("Erro Crítico na DB:", err.stack);
 });
