@@ -6,52 +6,51 @@
 
   <title>Códice do Jota</title>
 
-  <!-- Manifesto PWA -->
+  <!-- PWA -->
   <link rel="manifest" href="manifest.json" />
-
-  <!-- Cor do tema (mobile) -->
   <meta name="theme-color" content="#7C2D12" />
 
-  <!-- Fonte medieval -->
+  <!-- Fonte -->
   <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&display=swap" rel="stylesheet">
 
-  <!-- Estilos -->
+  <!-- CSS -->
   <link rel="stylesheet" href="css/main.css" />
 </head>
 
 <body>
 
-  <!-- Estrutura principal -->
   <div id="app">
 
-    <!-- 🪵 Sidebar (coluna do grimório) -->
+    <!-- 🪵 SIDEBAR -->
     <aside class="sidebar">
+
       <h1 class="logo">Códice do Jota</h1>
 
       <nav class="menu">
-        <button data-route="/">🏠 Pórtico</button>
+        <button data-route="/">🏛️ Pórtico</button>
         <button data-route="/talhoes">🌱 Talhões</button>
         <button data-route="/herbario">🌿 Herbário</button>
         <button data-route="/notas">📜 Arquivo</button>
+        <button data-route="/instrumentos">🧪 Instrumentos</button>
       </nav>
 
-      <!-- Alternador de tema -->
       <button id="themeToggle" class="theme-btn">
         🌙 Alternar Tema
       </button>
+
     </aside>
 
-    <!-- 📖 Área dinâmica -->
+    <!-- 📖 VIEW -->
     <main id="view">
-      <!-- conteúdo entra aqui -->
+      <!-- render do router -->
     </main>
 
   </div>
 
-  <!-- JS principal (módulos) -->
+  <!-- APP -->
   <script type="module" src="js/app.js"></script>
 
-  <!-- Service Worker -->
+  <!-- SERVICE WORKER -->
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js');
