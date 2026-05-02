@@ -2,43 +2,61 @@
 <html lang="pt-PT">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
   <title>Códice do Jota</title>
 
   <!-- Manifesto PWA -->
   <link rel="manifest" href="manifest.json" />
 
-  <!-- Fontes -->
+  <!-- Cor do tema (mobile) -->
+  <meta name="theme-color" content="#7C2D12" />
+
+  <!-- Fonte medieval -->
   <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&display=swap" rel="stylesheet">
 
   <!-- Estilos -->
   <link rel="stylesheet" href="css/main.css" />
 </head>
+
 <body>
+
+  <!-- Estrutura principal -->
   <div id="app">
+
+    <!-- 🪵 Sidebar (coluna do grimório) -->
     <aside class="sidebar">
-      <h1>Códice do Jota</h1>
-      <nav>
-        <button data-route="/">Pórtico</button>
-        <button data-route="/talhoes">Talhões</button>
-        <button data-route="/herbario">Herbário</button>
-        <button data-route="/notas">Arquivo</button>
+      <h1 class="logo">Códice do Jota</h1>
+
+      <nav class="menu">
+        <button data-route="/">🏠 Pórtico</button>
+        <button data-route="/talhoes">🌱 Talhões</button>
+        <button data-route="/herbario">🌿 Herbário</button>
+        <button data-route="/notas">📜 Arquivo</button>
       </nav>
-      <button id="themeToggle">🌙</button>
+
+      <!-- Alternador de tema -->
+      <button id="themeToggle" class="theme-btn">
+        🌙 Alternar Tema
+      </button>
     </aside>
 
-    <main id="view"></main>
+    <!-- 📖 Área dinâmica -->
+    <main id="view">
+      <!-- conteúdo entra aqui -->
+    </main>
+
   </div>
 
-  <script src="js/db.js"></script>
-  <script src="js/seed.js"></script>
-  <script src="js/router.js"></script>
-  <script src="js/app.js"></script>
+  <!-- JS principal (módulos) -->
+  <script type="module" src="js/app.js"></script>
 
+  <!-- Service Worker -->
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js');
     }
   </script>
+
 </body>
 </html>
