@@ -1,6 +1,6 @@
 /**
- * Códice do Jota — Herbário Vivo (UI evoluída v2)
- * Melhor UX: form colapsável + botão de criação + navegação limpa
+ * Códice do Jota — Herbário Vivo (versão consolidada)
+ * CRUD + UI + filtros + segurança de remoção
  */
 
 import { db, addLog } from './db.js';
@@ -45,22 +45,15 @@ export function createPlanta(data) {
 }
 
 /* =========================================================
-   🪓 DELETE
+   🪓 DELETE (com confirmação)
 ========================================================= */
 
 export function deletePlanta(id) {
   try {
     const confirmBox = document.getElementById(`confirm-delete-${id}`);
 
-    // 🧠 Se não existir checkbox, bloqueia segurança
-    if (!confirmBox) {
-      console.warn('Checkbox de confirmação não encontrada');
-      return;
-    }
-
-    // ❌ Se não estiver marcado, não apaga
-    if (!confirmBox.checked) {
-      alert('☠️ Confirma primeiro a eliminação da planta');
+    if (!confirmBox || !confirmBox.checked) {
+      alert('☠️ Confirma primeiro a remoção da planta');
       return;
     }
 
@@ -134,40 +127,39 @@ export async function renderHerbario() {
 
       <h2>🌿 Herbário Vivo</h2>
 
-      <!-- 🌱 FORM COLAPSÁVEL NATIVO -->
-<details class="herb-group" open>
+      <!-- 🌱 FORM COLAPSÁVEL -->
+      <details class="herb-group">
 
-  <summary style="cursor:pointer; font-weight:bold; padding:1rem;">
-    🌱 Adicionar Planta
-  </summary>
+        <summary>🌱 Adicionar Planta</summary>
 
-  <form id="plantaForm" class="card herb-form">
+        <form id="plantaForm" class="card herb-form">
 
-    <div class="grid-form">
-      <input name="nome" placeholder="Nome" required />
-      <input name="latin" placeholder="Latim" />
-      <input name="familia" placeholder="Família" />
+          <div class="grid-form">
+            <input name="nome" placeholder="Nome" required />
+            <input name="latin" placeholder="Latim" />
+            <input name="familia" placeholder="Família" />
 
-      <select name="tipo">
-        <option value="">Tipo</option>
-        <option value="folha">🌿 Folha</option>
-        <option value="fruto">🍅 Fruto</option>
-        <option value="raiz">🥕 Raiz</option>
-        <option value="aromatica">🌱 Aromática</option>
-        <option value="leguminosa">🌾 Leguminosa</option>
-      </select>
+            <select name="tipo">
+              <option value="">Tipo</option>
+              <option value="folha">🌿 Folha</option>
+              <option value="fruto">🍅 Fruto</option>
+              <option value="raiz">🥕 Raiz</option>
+              <option value="aromatica">🌱 Aromática</option>
+              <option value="leguminosa">🌾 Leguminosa</option>
+            </select>
 
-      <input name="ciclo" placeholder="Ciclo" />
-      <input name="agua" placeholder="Água" />
-    </div>
+            <input name="ciclo" placeholder="Ciclo" />
+            <input name="agua" placeholder="Água" />
+          </div>
 
-    <textarea name="notas" placeholder="Segredos do cultivo"></textarea>
+          <textarea name="notas" placeholder="Segredos do cultivo"></textarea>
 
-    <button type="submit">🌱 Guardar Planta</button>
+          <button type="submit">🌱 Guardar Planta</button>
 
-  </form>
+        </form>
 
-</details>
+      </details>
+
       <!-- 🔍 SEARCH -->
       <div class="card">
         <input
@@ -177,11 +169,10 @@ export async function renderHerbario() {
         />
       </div>
 
-      <!-- 🌿 LISTA -->
+      <!-- 🌿 GRUPOS -->
       <div class="herb-groups">
 
         ${Object.entries(grupos).map(([tipo, items]) => `
-          
           <details open class="herb-group">
 
             <summary>
@@ -204,7 +195,15 @@ export async function renderHerbario() {
 
                   ${p.notas ? `<p class="notes">🪶 ${p.notas}</p>` : ''}
 
-                  <button data-delete="${p.id}">🪓 Remover</button>
+                  <!-- ☑️ CONFIRMAÇÃO -->
+                  <label style="display:flex;align-items:center;gap:.5rem;margin:.5rem 0;">
+                    <input type="checkbox" id="confirm-delete-${p.id}" />
+                    Confirmar remoção
+                  </label>
+
+                  <button data-delete="${p.id}">
+                    🪓 Remover
+                  </button>
 
                 </div>
               `).join('')}
@@ -212,7 +211,6 @@ export async function renderHerbario() {
             </div>
 
           </details>
-
         `).join('')}
 
       </div>
@@ -228,14 +226,6 @@ export async function renderHerbario() {
 export function bindHerbarioEvents() {
   const form = document.getElementById('plantaForm');
   const search = document.getElementById('herbSearch');
-  const toggleBtn = document.getElementById('toggleFormBtn');
-
-  /* 🌱 TOGGLE FORM */
-  if (toggleBtn && form) {
-    toggleBtn.addEventListener('click', () => {
-      form.classList.toggle('hidden');
-    });
-  }
 
   /* 🌱 CREATE */
   if (form) {
@@ -265,8 +255,8 @@ export function bindHerbarioEvents() {
       const q = search.value.toLowerCase();
 
       document.querySelectorAll('.herb-item').forEach(item => {
-        const text = item.innerText.toLowerCase();
-        item.style.display = text.includes(q) ? 'block' : 'none';
+        item.style.display =
+          item.innerText.toLowerCase().includes(q) ? 'block' : 'none';
       });
     });
   }
