@@ -1,21 +1,11 @@
-/**
- * Códice do Jota — Router (versão viva)
- * Controla navegação + render + ligação de eventos
- */
-
-import { renderPortico } from './portico.js';
-
+import { renderDashboard } from './ui.js';
 import { renderTalhoes, bindTalhoesEvents } from './talhoes.js';
 import { renderHerbario, bindHerbarioEvents } from './herbario.js';
 import { renderNotas, bindNotasEvents } from './notas.js';
 import { renderInstrumentos } from './instrumentos.js';
 
-/* =========================================================
-   🧭 TÁBUA DE ROTAS (vivas)
-========================================================= */
-
 const routes = {
-  '/': async () => renderPortico(),
+  '/': async () => renderDashboard(),
 
   '/talhoes': async () => {
     const html = await renderTalhoes();
@@ -35,14 +25,8 @@ const routes = {
     return html;
   },
 
-  '/instrumentos': async () => {
-    return renderInstrumentos();
-  }
+  '/instrumentos': async () => renderInstrumentos()
 };
-
-/* =========================================================
-   🌙 NAVEGAÇÃO CENTRAL
-========================================================= */
 
 export async function navigate(path) {
   const view = document.getElementById('view');
@@ -50,11 +34,14 @@ export async function navigate(path) {
   const render = routes[path] || (() => `
     <section>
       <h2>⚠️ Página não encontrada</h2>
-      <p>O caminho perdeu-se no pergaminho.</p>
     </section>
   `);
 
-  view.innerHTML = await render();
-
-  window.scrollTo(0, 0);
+  try {
+    view.innerHTML = await render();
+    window.scrollTo(0, 0);
+  } catch (err) {
+    console.error('Router error:', err);
+    view.innerHTML = `<section><h2>❌ Erro a carregar página</h2></section>`;
+  }
 }
