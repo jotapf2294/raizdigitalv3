@@ -1,7 +1,5 @@
 /**
- * Códice do Jota — Pórtico Final (Fase VII)
- * Dashboard central da horta
- * Consolida talhões, plantas, notas e instrumentos
+ * Códice do Jota — Pórtico Final (robusto)
  */
 
 import { getTalhoes } from './talhoes.js';
@@ -11,47 +9,49 @@ import { getFieldLogs } from './instrumentos.js';
 import { getMoonPhase, getPlantingType } from './lunar.js';
 
 /* =========================================================
-   🌙 UTIL — estado da horta
+   🧠 SAFE FETCH HELPERS
+========================================================= */
+
+async function safe(fn, fallback = []) {
+  try {
+    const result = await fn();
+    return Array.isArray(result) ? result : fallback;
+  } catch (err) {
+    console.error('Portico data error:', err);
+    return fallback;
+  }
+}
+
+/* =========================================================
+   🌿 ESTADO DA HORTA
 ========================================================= */
 
 async function getHortaState() {
   const [talhoes, plantas, notas] = await Promise.all([
-    getTalhoes(),
-    getPlantas(),
-    getNotas()
+    safe(getTalhoes),
+    safe(getPlantas),
+    safe(getNotas)
   ]);
 
-  return {
-    talhoes,
-    plantas,
-    notas
-  };
+  return { talhoes, plantas, notas };
 }
 
 /* =========================================================
-   🌿 ALERTAS SIMPLES (regras base)
+   ⚠️ ALERTAS
 ========================================================= */
 
 function generateAlerts(state) {
   const alerts = [];
 
-  if (state.talhoes.length === 0) {
-    alerts.push('🌱 Ainda não existem talhões definidos.');
-  }
-
-  if (state.plantas.length < 3) {
-    alerts.push('🌿 Herbário ainda pouco desenvolvido.');
-  }
-
-  if (state.notas.length === 0) {
-    alerts.push('📜 Nenhuma nota registada ainda.');
-  }
+  if (!state.talhoes.length) alerts.push('🌱 Ainda não existem talhões definidos.');
+  if (state.plantas.length < 3) alerts.push('🌿 Herbário ainda pouco desenvolvido.');
+  if (!state.notas.length) alerts.push('📜 Nenhuma nota registada ainda.');
 
   return alerts;
 }
 
 /* =========================================================
-   🌙 PÓRTICO — RENDER PRINCIPAL
+   🏛️ RENDER PÓRTICO
 ========================================================= */
 
 export async function renderPortico() {
@@ -60,49 +60,53 @@ export async function renderPortico() {
   const moon = getMoonPhase();
   const planting = getPlantingType(moon);
 
+  let logs = [];
+
+  try {
+    logs = getFieldLogs() || [];
+  } catch (err) {
+    logs = [];
+  }
+
+  logs = logs.slice(-5).reverse();
+
   const alerts = generateAlerts(state);
-  const logs = getFieldLogs().slice(-5).reverse();
 
   return `
     <section class="portico">
 
       <h2>🏛️ Pórtico do Códice</h2>
 
-      <!-- ESTADO LUNAR -->
       <div class="card">
         <h3>🌙 Céu Atual</h3>
         <p><strong>Fase:</strong> ${moon}</p>
-        <p><strong>Energia agrícola:</strong> ${planting}</p>
+        <p><strong>Energia:</strong> ${planting}</p>
       </div>
 
-      <!-- RESUMO DA HORTA -->
       <div class="card">
         <h3>🌿 Estado da Horta</h3>
-
         <p>🌱 Talhões: ${state.talhoes.length}</p>
         <p>🌿 Plantas: ${state.plantas.length}</p>
         <p>📜 Notas: ${state.notas.length}</p>
       </div>
 
-      <!-- ALERTAS -->
       <div class="card">
         <h3>⚠️ Sussurros da Terra</h3>
 
         ${
-          alerts.length === 0
-            ? `<p>🌾 Tudo em equilíbrio.</p>`
-            : `<ul>${alerts.map(a => `<li>${a}</li>`).join('')}</ul>`
+          alerts.length
+            ? `<ul>${alerts.map(a => `<li>${a}</li>`).join('')}</ul>`
+            : `<p>🌾 Tudo em equilíbrio.</p>`
         }
+
       </div>
 
-      <!-- DIÁRIO DE CAMPO -->
       <div class="card">
         <h3>📍 Últimos Registos</h3>
 
         ${
-          logs.length === 0
-            ? `<p>Sem registos recentes.</p>`
-            : `<ul>
+          logs.length
+            ? `<ul>
                 ${logs.map(l => `
                   <li>
                     ${l.texto}
@@ -110,6 +114,7 @@ export async function renderPortico() {
                   </li>
                 `).join('')}
               </ul>`
+            : `<p>Sem registos recentes.</p>`
         }
 
       </div>
