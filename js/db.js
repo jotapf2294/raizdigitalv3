@@ -1,19 +1,23 @@
 /**
  * DATABASE ENGINE - js/db.js
- * Configuração da estrutura de dados local.
+ * Versão 2.0 - Suporte para Gestão Profissional de Zonas e Cultivos
  */
 const db = new Dexie("MinhaHortaDB");
 
-db.version(1).stores({
-    // Adicionado campo 'notas' para a Wiki
+// Definimos o schema atualizado
+// Versão 2 permite a relação entre Zonas e Espécies
+db.version(2).stores({
     especies: '++id, nome, categoria, lua, rega, sol, meses, notas',
     zonas: '++id, nome, icon',
+    // Tabela de ligação: zonaId e especieId permitem o controlo detalhado
+    cultivos: '++id, zonaId, especieId, dataPlantio, statusRega, statusNutrientes',
     colheitas: '++id, nome, peso, data',
-    notas: '++id, titulo, data'
+    notas: '++id, titulo, texto, data'
 });
 
-// Dados iniciais para não começar vazio
+// População inicial inteligente
 db.on("populate", () => {
+    console.log("A popular base de dados inicial...");
     db.especies.bulkAdd([
         { 
             nome: "Tomate", 
@@ -21,8 +25,8 @@ db.on("populate", () => {
             lua: "Crescente", 
             rega: "Alta", 
             sol: "Pleno", 
-            meses: "Mar-Jun", 
-            notas: "Necessita de estacas para suporte." 
+            meses: "Março - Junho", 
+            notas: "Necessita de estacas para suporte e podas regulares dos 'ladrões'." 
         },
         { 
             nome: "Alface", 
@@ -31,11 +35,31 @@ db.on("populate", () => {
             rega: "Média", 
             sol: "Meia-sombra", 
             meses: "Ano inteiro", 
-            notas: "Cuidado com os caracóis em dias de chuva." 
+            notas: "Colher as folhas exteriores para manter a planta a produzir." 
+        },
+        { 
+            nome: "Cenoura", 
+            categoria: "Raízes", 
+            lua: "Minguante", 
+            rega: "Média", 
+            sol: "Pleno", 
+            meses: "Fevereiro - Outubro", 
+            notas: "Solo deve estar bem solto e sem pedras." 
         }
     ]);
+
+    // Criar uma zona padrão para o utilizador começar logo a ver algo
+    db.zonas.add({ nome: "Canteiro Principal", icon: "🌿" });
 });
 
-db.open().catch(err => {
-    console.error("Erro Crítico na DB:", err.stack);
+// Abertura da ligação com tratamento de erros
+db.open().then(() => {
+    console.log("Base de dados MinhaHortaDB pronta e ligada.");
+}).catch(err => {
+    console.error("Erro Crítico ao abrir a IndexedDB:", err.stack);
+    // Caso haja erro de versão, podemos forçar o upgrade apagando a versão antiga (CUIDADO em produção)
+    // Dexie.delete("MinhaHortaDB"); 
 });
+
+// Exportar para uso global
+window.db = db;
