@@ -1,64 +1,87 @@
 /**
- * Códice do Jota — Arquivo do Sábio (Fase V)
- * Sistema de notas agrícolas tipo grimório
- * Markdown simples + tags + persistência offline
+ * Códice do Jota — Arquivo do Sábio (SPA correto)
  */
 
 import { db, addLog } from './db.js';
 
 /* =========================================================
-   📜 CREATE — Nova nota
+   🧠 SAFE STORE
 ========================================================= */
+
+function getStore(mode = 'readonly') {
+  if (!db) throw new Error('DB ainda não inicializada');
+  const tx = db.transaction('notas', mode);
+  return tx.objectStore('notas');
+}
+
+/* =========================================================
+   📜 CREATE
+========================================================= */
+
 export function createNota(data) {
-  const tx = db.transaction('notas', 'readwrite');
-  const store = tx.objectStore('notas');
+  try {
+    const store = getStore('readwrite');
 
-  const request = store.add({
-    titulo: data.titulo,
-    conteudo: data.conteudo || '',
-    tags: data.tags || '',
-    criadoEm: new Date().toISOString()
-  });
-
-  request.onsuccess = () => {
-    addLog(`📜 Nota criada: ${data.titulo}`);
-  };
-
-  request.onerror = () => {
-    console.error('Erro ao criar nota');
-  };
-}
-
-/* =========================================================
-   🪓 DELETE — Remover nota
-========================================================= */
-export function deleteNota(id) {
-  const tx = db.transaction('notas', 'readwrite');
-  const store = tx.objectStore('notas');
-
-  store.delete(id);
-  addLog(`🪓 Nota removida: ${id}`);
-}
-
-/* =========================================================
-   📚 READ — Listar notas
-========================================================= */
-export function getNotas() {
-  return new Promise((resolve) => {
-    const tx = db.transaction('notas', 'readonly');
-    const store = tx.objectStore('notas');
-
-    const request = store.getAll();
+    const request = store.add({
+      titulo: data.titulo,
+      conteudo: data.conteudo || '',
+      tags: data.tags || '',
+      criadoEm: new Date().toISOString()
+    });
 
     request.onsuccess = () => {
-      resolve(request.result || []);
+      addLog(`📜 Nota criada: ${data.titulo}`);
     };
+
+    request.onerror = () => {
+      console.error('Erro ao criar nota');
+    };
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+/* =========================================================
+   🪓 DELETE
+========================================================= */
+
+export function deleteNota(id) {
+  try {
+    const store = getStore('readwrite');
+
+    store.delete(id);
+
+    addLog(`🪓 Nota removida: ${id}`);
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+/* =========================================================
+   📚 READ
+========================================================= */
+
+export function getNotas() {
+  return new Promise((resolve, reject) => {
+    try {
+      const store = getStore('readonly');
+      const request = store.getAll();
+
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => reject(request.error);
+
+    } catch (err) {
+      reject(err);
+    }
   });
 }
 
 /* =========================================================
-   🖼️ RENDER — Arquivo do Sábio
+   🖼️ RENDER
 ========================================================= */
+
 export async function renderNotas() {
   const notas = await getNotas();
 
@@ -67,44 +90,38 @@ export async function renderNotas() {
 
       <h2>📜 Arquivo do Sábio</h2>
 
-      <!-- FORMULÁRIO -->
       <form id="notaForm" class="card">
-        <h3>Nova Inscrição</h3>
+        <h3>Nova Nota</h3>
 
-        <input name="titulo" placeholder="Título da nota" required />
+        <input name="titulo" placeholder="Título" required />
+        <input name="tags" placeholder="Tags" />
+        <textarea name="conteudo" placeholder="Escreve aqui..."></textarea>
 
-        <input name="tags" placeholder="Tags (ex: tomate, rega, inverno)" />
-
-        <textarea name="conteudo" placeholder="Escreve o conhecimento da terra..."></textarea>
-
-        <button type="submit">📜 Guardar no Arquivo</button>
+        <button type="submit">📜 Guardar</button>
       </form>
 
-      <!-- LISTA -->
       <div class="lista-notas">
 
         ${
           notas.length === 0
-            ? `<p>📜 O Arquivo ainda não contém inscrições.</p>`
+            ? `<p>Sem notas ainda.</p>`
             : notas.map(n => `
                 <div class="card">
 
                   <h3>${n.titulo}</h3>
 
-                  ${n.tags
-                    ? `<p><strong>Tags:</strong> ${n.tags}</p>`
-                    : ''}
+                  ${n.tags ? `<p>🏷️ ${n.tags}</p>` : ''}
 
                   <p style="white-space: pre-wrap;">
                     ${n.conteudo || ''}
                   </p>
 
-                  <small>🕯️ ${new Date(n.criadoEm).toLocaleString()}</small>
+                  <small>${new Date(n.criadoEm).toLocaleString()}</small>
 
                   <br><br>
 
                   <button data-delete="${n.id}">
-                    🪓 Rasurar
+                    🪓 Apagar
                   </button>
 
                 </div>
@@ -118,8 +135,9 @@ export async function renderNotas() {
 }
 
 /* =========================================================
-   🔗 EVENTS — Liga UI ao Arquivo
+   🔗 EVENTS (SPA SAFE)
 ========================================================= */
+
 export function bindNotasEvents() {
   const form = document.getElementById('notaForm');
 
@@ -132,14 +150,16 @@ export function bindNotasEvents() {
       createNota(data);
       form.reset();
 
-      setTimeout(() => location.reload(), 100);
+      // re-render suave via router
+      window.dispatchEvent(new Event('navigate-refresh'));
     });
   }
 
   document.querySelectorAll('[data-delete]').forEach(btn => {
     btn.addEventListener('click', () => {
       deleteNota(Number(btn.dataset.delete));
-      setTimeout(() => location.reload(), 100);
+
+      window.dispatchEvent(new Event('navigate-refresh'));
     });
   });
 }
