@@ -1,65 +1,88 @@
 /**
- * Códice do Jota — Talhões (Fase III)
- * Sistema completo de gestão de canteiros
- * CRUD + render + eventos UI
+ * Códice do Jota — Talhões (SPA real)
  */
 
 import { db, addLog } from './db.js';
 
 /* =========================================================
-   🌱 CREATE — Criar talhão
+   🧠 SAFE STORE
 ========================================================= */
+
+function getStore(mode = 'readonly') {
+  if (!db) throw new Error('DB não inicializada');
+  const tx = db.transaction('talhoes', mode);
+  return tx.objectStore('talhoes');
+}
+
+/* =========================================================
+   🌱 CREATE
+========================================================= */
+
 export function createTalhao(data) {
-  const tx = db.transaction('talhoes', 'readwrite');
-  const store = tx.objectStore('talhoes');
+  try {
+    const store = getStore('readwrite');
 
-  const request = store.add({
-    nome: data.nome,
-    cultura: data.cultura || '',
-    area: data.area || '',
-    notas: data.notas || '',
-    criadoEm: new Date().toISOString()
-  });
-
-  request.onsuccess = () => {
-    addLog(`🌱 Talhão criado: ${data.nome}`);
-  };
-
-  request.onerror = () => {
-    console.error('Erro ao criar talhão');
-  };
-}
-
-/* =========================================================
-   🪓 DELETE — Remover talhão
-========================================================= */
-export function deleteTalhao(id) {
-  const tx = db.transaction('talhoes', 'readwrite');
-  const store = tx.objectStore('talhoes');
-
-  store.delete(id);
-  addLog(`🪓 Talhão removido: ${id}`);
-}
-
-/* =========================================================
-   📜 READ — Listar talhões
-========================================================= */
-export function getTalhoes() {
-  return new Promise((resolve) => {
-    const tx = db.transaction('talhoes', 'readonly');
-    const store = tx.objectStore('talhoes');
-
-    const request = store.getAll();
+    const request = store.add({
+      nome: data.nome,
+      cultura: data.cultura || '',
+      area: data.area || '',
+      notas: data.notas || '',
+      criadoEm: new Date().toISOString()
+    });
 
     request.onsuccess = () => {
-      resolve(request.result || []);
+      addLog(`🌱 Talhão criado: ${data.nome}`);
     };
+
+    request.onerror = () => {
+      console.error('Erro ao criar talhão');
+    };
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+/* =========================================================
+   🪓 DELETE
+========================================================= */
+
+export function deleteTalhao(id) {
+  try {
+    const store = getStore('readwrite');
+
+    store.delete(id);
+
+    addLog(`🪓 Talhão removido: ${id}`);
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+/* =========================================================
+   📜 READ
+========================================================= */
+
+export function getTalhoes() {
+  return new Promise((resolve, reject) => {
+    try {
+      const store = getStore('readonly');
+      const request = store.getAll();
+
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => reject(request.error);
+
+    } catch (err) {
+      reject(err);
+    }
   });
 }
 
 /* =========================================================
-   🖼️ RENDER — Interface dos talhões
+   🖼️ RENDER
 ========================================================= */
+
 export async function renderTalhoes() {
   const talhoes = await getTalhoes();
 
@@ -68,39 +91,36 @@ export async function renderTalhoes() {
 
       <h2>🌱 Talhões da Horta</h2>
 
-      <!-- FORMULÁRIO -->
       <form id="talhaoForm" class="card">
-        <h3>Semear novo talhão</h3>
+        <h3>Semear Talhão</h3>
 
-        <input name="nome" placeholder="Nome do canteiro" required />
-        <input name="cultura" placeholder="Cultura (ex: tomate, couve...)" />
+        <input name="nome" placeholder="Nome" required />
+        <input name="cultura" placeholder="Cultura" />
         <input name="area" placeholder="Área (m²)" />
+        <textarea name="notas" placeholder="Notas"></textarea>
 
-        <textarea name="notas" placeholder="Notas do terreno"></textarea>
-
-        <button type="submit">🌱 Semear</button>
+        <button type="submit">🌱 Guardar</button>
       </form>
 
-      <!-- LISTA -->
       <div class="lista-talhoes">
 
         ${
-          talhoes.length === 0
-            ? `<p>🌿 Nenhum talhão semeado ainda.</p>`
-            : talhoes.map(t => `
+          talhoes.length
+            ? talhoes.map(t => `
                 <div class="card">
                   <h3>${t.nome}</h3>
 
-                  <p><strong>Cultura:</strong> ${t.cultura || '—'}</p>
-                  <p><strong>Área:</strong> ${t.area || '—'} m²</p>
+                  <p>Cultura: ${t.cultura || '—'}</p>
+                  <p>Área: ${t.area || '—'} m²</p>
 
-                  ${t.notas ? `<p><em>${t.notas}</em></p>` : ''}
+                  ${t.notas ? `<p>${t.notas}</p>` : ''}
 
                   <button data-delete="${t.id}">
-                    🪓 Remover
+                    🪓 Apagar
                   </button>
                 </div>
               `).join('')
+            : `<p>🌿 Nenhum talhão semeado ainda.</p>`
         }
 
       </div>
@@ -110,12 +130,12 @@ export async function renderTalhoes() {
 }
 
 /* =========================================================
-   🔗 EVENTS — Liga UI à lógica
+   🔗 EVENTS (SPA SAFE)
 ========================================================= */
+
 export function bindTalhoesEvents() {
   const form = document.getElementById('talhaoForm');
 
-  // 🌱 Criar talhão
   if (form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -123,19 +143,18 @@ export function bindTalhoesEvents() {
       const data = Object.fromEntries(new FormData(form));
 
       createTalhao(data);
-
       form.reset();
 
-      // refresh simples (Fase futura: state-based render)
-      setTimeout(() => location.reload(), 100);
+      // re-render controlado pelo router
+      window.dispatchEvent(new Event('navigate-refresh'));
     });
   }
 
-  // 🪓 Remover talhão
   document.querySelectorAll('[data-delete]').forEach(btn => {
     btn.addEventListener('click', () => {
       deleteTalhao(Number(btn.dataset.delete));
-      setTimeout(() => location.reload(), 100);
+
+      window.dispatchEvent(new Event('navigate-refresh'));
     });
   });
 }
