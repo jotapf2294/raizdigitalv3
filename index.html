@@ -2,77 +2,32 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Horta Master Offline</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Horta Gestão</title>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="manifest" href="manifest.json">
     <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
 </head>
 <body>
 
-    <header id="main-header">
-        <div class="lunar-widget">
-            <span id="lunar-emoji" class="huge-emoji">🌑</span>
-            <div class="lunar-text">
-                <h2 id="lunar-name">Carregando...</h2>
-                <p id="lunar-advice">A calcular melhor ação para hoje...</p>
-            </div>
-        </div>
+    <header>
+        <h2 style="color: var(--accent)">Horta 🌱</h2>
+        <button onclick="toggleDarkMode()" style="background:none; border:none; font-size:1.5rem">🌓</button>
     </header>
 
-    <main id="app-viewport">
-        <section id="home" class="page active">
-            <div class="welcome-msg">
-                <h3>Olá, Jardineiro! 🌱</h3>
-                <p>O que vamos cultivar hoje?</p>
-            </div>
-            <div class="menu-grid">
-                <div class="menu-card" onclick="navigate('zonas')">
-                    <span class="icon">🗺️</span>
-                    <span>Zonas</span>
-                </div>
-                <div class="menu-card" onclick="navigate('wiki')">
-                    <span class="icon">📖</span>
-                    <span>Wiki</span>
-                </div>
-                <div class="menu-card" onclick="navigate('colheitas')">
-                    <span class="icon">🧺</span>
-                    <span>Colheitas</span>
-                </div>
-                <div class="menu-card" onclick="navigate('notas')">
-                    <span class="icon">📓</span>
-                    <span>Notas</span>
-                </div>
-            </div>
-        </section>
+    <main id="app" style="margin-top: 60px;">
+        </main>
 
-        <section id="zonas" class="page">
-            <div class="section-header">
-                <button class="back-btn" onclick="navigate('home')">⬅️</button>
-                <h2>Minhas Zonas</h2>
-            </div>
-            <div id="lista-zonas" class="list-container"></div>
-            <button class="fab" onclick="abrirModalZona()">+</button>
-        </section>
-
-        <section id="wiki" class="page">
-            <div class="section-header">
-                <button class="back-btn" onclick="navigate('home')">⬅️</button>
-                <h2>Wiki Botânica</h2>
-            </div>
-            <div id="lista-wiki" class="list-container"></div>
-        </section>
-    </main>
-
-    <nav class="bottom-nav">
-        <button onclick="navigate('home')" class="nav-item">🏠</button>
-        <button onclick="navigate('zonas')" class="nav-item">🌿</button>
-        <button onclick="navigate('wiki')" class="nav-item">📖</button>
-        <button onclick="navigate('notas')" class="nav-item">📓</button>
+    <nav class="nav-bottom">
+        <button class="nav-item active" onclick="showView('home')">🏠</button>
+        <button class="nav-item" onclick="showView('zonas')">🗺️</button>
+        <button class="nav-item" onclick="showView('wiki')">📖</button>
+        <button class="nav-item" onclick="showView('notas')">📓</button>
     </nav>
 
     <script src="js/db.js"></script>
     <script src="js/lunar.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/wiki.js"></script>
+    <script src="js/zonas.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
