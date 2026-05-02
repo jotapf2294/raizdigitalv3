@@ -1,28 +1,30 @@
 /**
- * Códice do Jota — Núcleo de Arranque
- * Aqui invocamos todos os sistemas base
+ * Códice do Jota — Núcleo de Arranque (versão viva)
+ * Orquestra DB, router, UI e sementes iniciais
  */
 
 import { navigate } from './router.js';
 import { initDB } from './db.js';
 import { seedData } from './seed.js';
 
-/**
- * Aplica tema guardado (Sol / Noite)
- */
+/* =========================================================
+   🎨 TEMA — persistência solar/lunar
+========================================================= */
+
 function applySavedTheme() {
   const saved = localStorage.getItem('codex-theme');
 
   if (saved === 'dark') {
     document.body.classList.add('dark');
+  } else {
+    document.body.classList.remove('dark');
   }
 }
 
-/**
- * Alterna tema e guarda escolha
- */
 function setupThemeToggle() {
   const btn = document.getElementById('themeToggle');
+
+  if (!btn) return;
 
   btn.addEventListener('click', () => {
     document.body.classList.toggle('dark');
@@ -32,9 +34,10 @@ function setupThemeToggle() {
   });
 }
 
-/**
- * Liga botões de navegação
- */
+/* =========================================================
+   🧭 NAVEGAÇÃO — liga botões do grimório
+========================================================= */
+
 function setupNavigation() {
   document.querySelectorAll('[data-route]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -44,30 +47,39 @@ function setupNavigation() {
   });
 }
 
-/**
- * Arranque principal do Códice
- */
-document.addEventListener('DOMContentLoaded', async () => {
+/* =========================================================
+   🌱 BOOT SEGURO — evita corrida de inicialização
+========================================================= */
 
+async function boot() {
   console.log('📜 A abrir o Códice...');
 
-  // Tema primeiro (para evitar flash visual)
-  applySavedTheme();
+  try {
+    // 🌙 Tema primeiro (evita flash)
+    applySavedTheme();
 
-  // Base de dados
-  await initDB();
+    // 🧠 Base de dados (memória da terra)
+    await initDB();
 
-  // Sementes iniciais
-  seedData();
+    // 🌱 Sementes iniciais (apenas 1x)
+    await seedData();
 
-  // Navegação
-  setupNavigation();
+    // 🧭 UI interativa
+    setupNavigation();
+    setupThemeToggle();
 
-  // Tema toggle
-  setupThemeToggle();
+    // 🏛️ Pórtico inicial
+    navigate('/');
 
-  // Página inicial
-  navigate('/');
+    console.log('🌿 Códice pronto para cultivo.');
 
-  console.log('🌱 Códice pronto.');
-});
+  } catch (err) {
+    console.error('❌ Erro no arranque do Códice:', err);
+  }
+}
+
+/* =========================================================
+   🚀 ARRANQUE
+========================================================= */
+
+document.addEventListener('DOMContentLoaded', boot);
