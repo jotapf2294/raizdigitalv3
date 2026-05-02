@@ -1,27 +1,36 @@
 /**
- * Módulo Wiki - Sistema CRUD e Pesquisa
- * Responsável por gerir o catálogo de espécies
+ * Módulo Wiki v2.0 - Engenharia Sénior
+ * Refinado: Sem input de emoji, com Notas e UI otimizada.
  */
 
 const WikiModule = {
-    // Renderiza a vista principal da Wiki
+    // Helper para ícones de categoria automáticos
+    getCategoryIcon: (cat) => {
+        const icons = {
+            'Frutos': '🍅',
+            'Folhas': '🥬',
+            'Raízes': '🥕',
+            'Aromáticas': '🌿',
+            'Geral': '🌱'
+        };
+        return icons[cat] || icons['Geral'];
+    },
+
     render: async (container) => {
         container.innerHTML = `
             <div class="fb-card">
                 <div class="search-container">
-                    <input type="text" id="wiki-search" placeholder="🔍 Pesquisar planta..." oninput="WikiModule.handleSearch(this.value)">
+                    <input type="text" id="wiki-search" placeholder="🔍 Pesquisar na tua enciclopédia..." oninput="WikiModule.handleSearch(this.value)">
                 </div>
             </div>
             
-            <div id="wiki-list-container">
-                </div>
+            <div id="wiki-list-container"></div>
 
-            <button class="fab" onclick="WikiModule.openAddModal()">+</button>
+            <button class="fab" onclick="WikiModule.openAddModal()" title="Adicionar Planta">+</button>
         `;
         WikiModule.loadList();
     },
 
-    // Carrega e filtra a lista de plantas
     loadList: async (filter = "") => {
         const listContainer = document.getElementById('wiki-list-container');
         let especies = await db.especies.toArray();
@@ -31,7 +40,11 @@ const WikiModule = {
         }
 
         if (especies.length === 0) {
-            listContainer.innerHTML = `<div class="fb-card"><p style="text-align:center">Nenhuma planta encontrada.</p></div>`;
+            listContainer.innerHTML = `
+                <div class="fb-card" style="text-align:center; padding: 40px;">
+                    <span style="font-size: 3rem">🍃</span>
+                    <p style="color:var(--text-secondary); margin-top:10px">Nenhuma planta encontrada.</p>
+                </div>`;
             return;
         }
 
@@ -39,77 +52,95 @@ const WikiModule = {
             <div class="fb-card wiki-item">
                 <div style="display:flex; justify-content:space-between; align-items:start">
                     <div>
-                        <h3 style="margin:0">${e.emoji || '🌱'} ${e.nome}</h3>
-                        <small style="color:var(--accent)">${e.categoria}</small>
+                        <h3 style="margin:0; display:flex; align-items:center; gap:8px">
+                            ${WikiModule.getCategoryIcon(e.categoria)} ${e.nome}
+                        </h3>
+                        <small style="background: var(--bg-primary); padding: 2px 8px; border-radius: 10px; color: var(--accent); font-weight: bold;">
+                            ${e.categoria}
+                        </small>
                     </div>
                     <div class="item-actions">
-                        <button onclick="WikiModule.openEditModal(${e.id})">✏️</button>
-                        <button onclick="WikiModule.deleteItem(${e.id})" style="color:red">🗑️</button>
+                        <button onclick="WikiModule.openEditModal(${e.id})" style="font-size:1.2rem">✏️</button>
+                        <button onclick="WikiModule.deleteItem(${e.id})" style="font-size:1.2rem; margin-left:8px">🗑️</button>
                     </div>
                 </div>
+
                 <div class="grid-details">
-                    <div class="detail">🌙 Lua: <b>${e.lua}</b></div>
-                    <div class="detail">💧 Rega: <b>${e.rega}</b></div>
-                    <div class="detail">☀️ Sol: <b>${e.sol}</b></div>
-                    <div class="detail">📅 Meses: <b>${e.meses}</b></div>
+                    <div class="detail">🌙 Lua: <strong>${e.lua}</strong></div>
+                    <div class="detail">💧 Rega: <strong>${e.rega}</strong></div>
+                    <div class="detail">☀️ Sol: <strong>${e.sol || 'Pleno'}</strong></div>
+                    <div class="detail">📅 Meses: <strong>${e.meses || 'N/A'}</strong></div>
                 </div>
+
+                ${e.notas ? `
+                    <div style="margin-top:12px; padding:10px; background:var(--bg-primary); border-radius:8px; font-size:0.85rem; border-left: 3px solid var(--accent)">
+                        <strong>📝 Notas:</strong> ${e.notas}
+                    </div>
+                ` : ''}
             </div>
         `).join('');
     },
 
-    handleSearch: (val) => {
-        WikiModule.loadList(val);
-    },
+    handleSearch: (val) => WikiModule.loadList(val),
 
-    // CRUD: Criar (Abrir Modal)
     openAddModal: () => {
-        WikiModule.showModal("Adicionar Planta", { nome: '', emoji: '', categoria: 'Frutos', lua: 'Crescente', rega: 'Média', sol: 'Pleno', meses: '' });
+        WikiModule.showModal("Adicionar Planta", { nome: '', categoria: 'Frutos', lua: 'Crescente', rega: 'Média', sol: 'Pleno', meses: '', notas: '' });
     },
 
-    // CRUD: Editar (Abrir Modal com Dados)
     openEditModal: async (id) => {
         const planta = await db.especies.get(id);
         WikiModule.showModal("Editar Planta", planta);
     },
 
-    // Helper: Desenha o Modal de formulário
     showModal: (title, data) => {
         const modalDiv = document.createElement('div');
         modalDiv.id = 'modal-overlay';
         modalDiv.className = 'modal-overlay';
         modalDiv.innerHTML = `
             <div class="modal-card">
-                <h3>${title}</h3>
+                <h3 style="margin-top:0; color:var(--accent)">${title}</h3>
                 <input type="hidden" id="form-id" value="${data.id || ''}">
-                <input type="text" id="form-nome" placeholder="Nome da planta" value="${data.nome}">
-                <input type="text" id="form-emoji" placeholder="Emoji (ex: 🍅)" value="${data.emoji}">
                 
+                <label style="font-size:0.8rem; color:var(--text-secondary)">Nome da Planta</label>
+                <input type="text" id="form-nome" placeholder="Ex: Manjericão" value="${data.nome || ''}">
+                
+                <label style="font-size:0.8rem; color:var(--text-secondary)">Categoria</label>
                 <select id="form-cat">
-                    <option ${data.categoria === 'Frutos' ? 'selected' : ''}>Frutos</option>
-                    <option ${data.categoria === 'Folhas' ? 'selected' : ''}>Folhas</option>
-                    <option ${data.categoria === 'Raízes' ? 'selected' : ''}>Raízes</option>
-                    <option ${data.categoria === 'Aromáticas' ? 'selected' : ''}>Aromáticas</option>
+                    <option value="Frutos" ${data.categoria === 'Frutos' ? 'selected' : ''}>🍅 Frutos</option>
+                    <option value="Folhas" ${data.categoria === 'Folhas' ? 'selected' : ''}>🥬 Folhas</option>
+                    <option value="Raízes" ${data.categoria === 'Raízes' ? 'selected' : ''}>🥕 Raízes</option>
+                    <option value="Aromáticas" ${data.categoria === 'Aromáticas' ? 'selected' : ''}>🌿 Aromáticas</option>
                 </select>
 
                 <div class="form-row">
-                    <select id="form-lua">
-                        <option ${data.lua === 'Crescente' ? 'selected' : ''}>Crescente</option>
-                        <option ${data.lua === 'Minguante' ? 'selected' : ''}>Minguante</option>
-                        <option ${data.lua === 'Nova' ? 'selected' : ''}>Nova</option>
-                        <option ${data.lua === 'Cheia' ? 'selected' : ''}>Cheia</option>
-                    </select>
-                    <select id="form-rega">
-                        <option ${data.rega === 'Baixa' ? 'selected' : ''}>Baixa</option>
-                        <option ${data.rega === 'Média' ? 'selected' : ''}>Média</option>
-                        <option ${data.rega === 'Alta' ? 'selected' : ''}>Alta</option>
-                    </select>
+                    <div>
+                        <label style="font-size:0.8rem; color:var(--text-secondary)">🌙 Lua Ideal</label>
+                        <select id="form-lua">
+                            <option ${data.lua === 'Crescente' ? 'selected' : ''}>Crescente</option>
+                            <option ${data.lua === 'Minguante' ? 'selected' : ''}>Minguante</option>
+                            <option ${data.lua === 'Nova' ? 'selected' : ''}>Nova</option>
+                            <option ${data.lua === 'Cheia' ? 'selected' : ''}>Cheia</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem; color:var(--text-secondary)">💧 Rega</label>
+                        <select id="form-rega">
+                            <option ${data.rega === 'Baixa' ? 'selected' : ''}>Baixa</option>
+                            <option ${data.rega === 'Média' ? 'selected' : ''}>Média</option>
+                            <option ${data.rega === 'Alta' ? 'selected' : ''}>Alta</option>
+                        </select>
+                    </div>
                 </div>
 
-                <input type="text" id="form-meses" placeholder="Meses de Plantio (ex: Fev - Mai)" value="${data.meses}">
+                <label style="font-size:0.8rem; color:var(--text-secondary)">📅 Época de Plantio</label>
+                <input type="text" id="form-meses" placeholder="Ex: Março a Junho" value="${data.meses || ''}">
+
+                <label style="font-size:0.8rem; color:var(--text-secondary)">📝 Notas Culturais</label>
+                <textarea id="form-notas" rows="3" placeholder="Dicas de adubação, pragas comuns..." style="width:100%; border-radius:8px; padding:10px; border:1px solid var(--border); background:var(--bg-primary); color:var(--text-primary); font-family:inherit;">${data.notas || ''}</textarea>
 
                 <div class="modal-actions">
                     <button class="btn-cancel" onclick="WikiModule.closeModal()">Cancelar</button>
-                    <button class="btn-save" onclick="WikiModule.save()">Salvar</button>
+                    <button class="btn-save" onclick="WikiModule.save()">Guardar</button>
                 </div>
             </div>
         `;
@@ -117,21 +148,23 @@ const WikiModule = {
     },
 
     closeModal: () => {
-        document.getElementById('modal-overlay').remove();
+        const overlay = document.getElementById('modal-overlay');
+        if(overlay) overlay.remove();
     },
 
-    // CRUD: Salvar (Novo ou Update)
     save: async () => {
         const id = document.getElementById('form-id').value;
         const payload = {
             nome: document.getElementById('form-nome').value,
-            emoji: document.getElementById('form-emoji').value,
             categoria: document.getElementById('form-cat').value,
             lua: document.getElementById('form-lua').value,
             rega: document.getElementById('form-rega').value,
-            sol: 'Pleno', // Simplificado
-            meses: document.getElementById('form-meses').value
+            sol: 'Pleno', 
+            meses: document.getElementById('form-meses').value,
+            notas: document.getElementById('form-notas').value
         };
+
+        if (!payload.nome) { alert("Dá um nome à planta, amigo!"); return; }
 
         if (id) {
             await db.especies.update(Number(id), payload);
@@ -143,15 +176,12 @@ const WikiModule = {
         WikiModule.loadList();
     },
 
-    // CRUD: Delete
     deleteItem: async (id) => {
-        if (confirm("Tens a certeza que queres eliminar esta planta da Wiki?")) {
+        if (confirm("Eliminar esta planta da tua Wiki?")) {
             await db.especies.delete(id);
             WikiModule.loadList();
         }
     }
 };
 
-// Integração com o main.js: exportar função de render
-window.renderWiki = WikiModule.render;
-              
+window.WikiModule = WikiModule;
