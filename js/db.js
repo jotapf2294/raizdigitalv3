@@ -1,6 +1,6 @@
 /**
- * Códice do Jota — Memória da Terra
- * IndexedDB: onde nada se perde, tudo se grava
+ * Códice do Jota — Memória da Terra (versão estabilizada)
+ * IndexedDB: base agrícola persistente offline
  */
 
 export const DB_NAME = 'codiceDB';
@@ -8,22 +8,19 @@ export const DB_VERSION = 1;
 
 export let db;
 
-/**
- * Inicializa a base de dados IndexedDB
- * Cria os “livros” do Códice (object stores)
- */
+/* =========================================================
+   🧠 INICIALIZAÇÃO DA BASE DE DADOS
+========================================================= */
+
 export function initDB() {
   return new Promise((resolve, reject) => {
 
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-    /**
-     * Criação/atualização da estrutura da base de dados
-     */
     request.onupgradeneeded = (event) => {
       const database = event.target.result;
 
-      // 🌱 Talhões — zonas de cultivo
+      // 🌱 TALHÕES
       if (!database.objectStoreNames.contains('talhoes')) {
         const talhoes = database.createObjectStore('talhoes', {
           keyPath: 'id',
@@ -33,7 +30,7 @@ export function initDB() {
         talhoes.createIndex('nome', 'nome', { unique: false });
       }
 
-      // 🌿 Plantas — herbário vivo
+      // 🌿 PLANTAS
       if (!database.objectStoreNames.contains('plantas')) {
         const plantas = database.createObjectStore('plantas', {
           keyPath: 'id',
@@ -43,7 +40,7 @@ export function initDB() {
         plantas.createIndex('nome', 'nome', { unique: false });
       }
 
-      // 📜 Notas — arquivo do sábio
+      // 📜 NOTAS
       if (!database.objectStoreNames.contains('notas')) {
         database.createObjectStore('notas', {
           keyPath: 'id',
@@ -51,7 +48,7 @@ export function initDB() {
         });
       }
 
-      // 🪵 Logs — histórico de ações
+      // 🪵 LOGS
       if (!database.objectStoreNames.contains('logs')) {
         database.createObjectStore('logs', {
           keyPath: 'id',
@@ -60,18 +57,14 @@ export function initDB() {
       }
     };
 
-    /**
-     * Sucesso na abertura da DB
-     */
     request.onsuccess = () => {
       db = request.result;
+
       console.log('🧠 Códice: memória da terra ativa');
+
       resolve(db);
     };
 
-    /**
-     * Erro fatal de abertura
-     */
     request.onerror = () => {
       console.error('❌ Falha ao abrir o Códice (IndexedDB)');
       reject(request.error);
@@ -79,9 +72,10 @@ export function initDB() {
   });
 }
 
-/**
- * Utilitário: grava log no Códice
- */
+/* =========================================================
+   🪵 LOGS — memória operacional
+========================================================= */
+
 export function addLog(entry) {
   if (!db) return;
 
