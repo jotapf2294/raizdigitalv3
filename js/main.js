@@ -1,32 +1,22 @@
 /**
  * CORE ENGINE - js/main.js
- * Responsável pelo roteamento, tema e gestão de estado global.
  */
 
 const App = {
-    // 1. Configurações Iniciais
     init: () => {
         console.log("Horta Gestão: A iniciar motor principal...");
-        
-        // Aplicar tema guardado imediatamente
         App.loadTheme();
-
-        // Configurar Event Listeners globais
         App.bindEvents();
-
-        // Iniciar na Wiki (Vista principal solicitada)
+        // Iniciamos na Wiki por padrão
         App.router('wiki');
     },
 
-    // 2. Gestor de Navegação (Router)
     router: async (view) => {
         const container = document.getElementById('app');
         if (!container) return;
 
-        // Atualizar estado visual da barra de navegação
         App.updateNavUI(view);
 
-        // Feedback visual de carregamento
         container.innerHTML = `
             <div class="fb-card" style="text-align:center; padding: 40px;">
                 <p style="color: var(--text-secondary)">A carregar módulo...</p>
@@ -43,24 +33,24 @@ const App = {
                     if (typeof WikiModule !== 'undefined') {
                         await WikiModule.render(container);
                     } else {
-                        throw new Error("Módulo Wiki não encontrado. Verifica se o ficheiro js/wiki.js está carregado.");
+                        throw new Error("Módulo Wiki não encontrado.");
                     }
                     break;
 
                 case 'zonas':
-                    container.innerHTML = `
-                        <div class="fb-card">
-                            <h2>🗺️ Minhas Zonas</h2>
-                            <p style="color: var(--text-secondary)">Em breve: Faz o mapeamento dos teus canteiros e associa plantas da Wiki.</p>
-                        </div>
-                    `;
+                    // AGORA ATIVADO: Chama o módulo que criámos anteriormente
+                    if (typeof ZonasModule !== 'undefined') {
+                        await ZonasModule.render(container);
+                    } else {
+                        throw new Error("Módulo de Zonas não encontrado.");
+                    }
                     break;
 
                 case 'notas':
                     container.innerHTML = `
                         <div class="fb-card">
                             <h2>📓 Caderno de Campo</h2>
-                            <p style="color: var(--text-secondary)">Em breve: Regista podas, adubações e observações diárias.</p>
+                            <p style="color: var(--text-secondary)">Próximo passo: Registo de observações.</p>
                         </div>
                     `;
                     break;
@@ -79,9 +69,7 @@ const App = {
         }
     },
 
-    // 3. Renderização da Home (Dashboard)
     renderHome: (container) => {
-        // Tenta obter dados da Lua, se o motor lunar existir
         const lua = (typeof getFaseLunar === 'function') 
             ? getFaseLunar() 
             : { nome: 'Lua', emoji: '🌙', acao: 'Motor lunar indisponível.' };
@@ -98,44 +86,34 @@ const App = {
             </div>
             
             <div class="fb-card">
-                <h3>Resumo do Dia</h3>
+                <h3>Resumo da Horta</h3>
                 <p style="color:var(--text-secondary)">
-                    Bem-vindo de volta! A tua horta está registada localmente e segura. 
-                    Usa o menu inferior para navegar.
+                    Sistema 100% local e privado. Os teus dados não saem deste dispositivo.
                 </p>
             </div>
         `;
     },
 
-    // 4. Utilitários de Interface (UI)
     updateNavUI: (currentView) => {
         document.querySelectorAll('.tab-item').forEach(btn => {
-            // Remove classe ativa de todos
             btn.classList.remove('active');
-            
-            // Verifica se o atributo onclick contém o nome da view
-            if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(currentView)) {
+            // Verifica se o onclick do botão contém a string da view (ex: 'wiki')
+            if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(`'${currentView}'`)) {
                 btn.classList.add('active');
             }
         });
     },
 
     bindEvents: () => {
-        // Toggle de Dark Mode
         const themeBtn = document.getElementById('theme-toggle');
-        if (themeBtn) {
-            themeBtn.addEventListener('click', App.toggleTheme);
-        }
+        if (themeBtn) themeBtn.onclick = App.toggleTheme;
     },
 
-    // 5. Gestão de Temas (Dark Mode)
     toggleTheme: () => {
         const current = document.documentElement.getAttribute('data-theme');
         const next = current === 'light' ? 'dark' : 'light';
-        
         document.documentElement.setAttribute('data-theme', next);
         localStorage.setItem('theme', next);
-        console.log(`Tema alterado para: ${next}`);
     },
 
     loadTheme: () => {
@@ -144,5 +122,4 @@ const App = {
     }
 };
 
-// Inicializar quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', App.init);
