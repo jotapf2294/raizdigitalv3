@@ -1,55 +1,60 @@
 /**
- * Códice do Jota — Router
- * Controla as páginas do grimório
+ * Códice do Jota — Router (versão viva)
+ * Controla navegação + render + ligação de eventos
  */
 
-import { renderDashboard } from './ui.js';
+import { renderPortico } from './portico.js';
 
-/**
- * Tábua de rotas
- * Cada caminho invoca uma função de render
- */
+import { renderTalhoes, bindTalhoesEvents } from './talhoes.js';
+import { renderHerbario, bindHerbarioEvents } from './herbario.js';
+import { renderNotas, bindNotasEvents } from './notas.js';
+import { renderInstrumentos } from './instrumentos.js';
+
+/* =========================================================
+   🧭 TÁBUA DE ROTAS (vivas)
+========================================================= */
+
 const routes = {
-  '/': renderDashboard,
+  '/': async () => renderPortico(),
 
-  '/talhoes': () => `
-    <section>
-      <h2>🌱 Talhões</h2>
-      <p>Aqui nascerão os teus canteiros.</p>
-    </section>
-  `,
+  '/talhoes': async () => {
+    const html = await renderTalhoes();
+    setTimeout(() => bindTalhoesEvents(), 0);
+    return html;
+  },
 
-  '/herbario': () => `
-    <section>
-      <h2>🌿 Herbário Vivo</h2>
-      <p>O conhecimento das plantas será guardado aqui.</p>
-    </section>
-  `,
+  '/herbario': async () => {
+    const html = await renderHerbario();
+    setTimeout(() => bindHerbarioEvents(), 0);
+    return html;
+  },
 
-  '/notas': () => `
-    <section>
-      <h2>📜 Arquivo do Sábio</h2>
-      <p>Notas, experiências e segredos da terra.</p>
-    </section>
-  `
+  '/notas': async () => {
+    const html = await renderNotas();
+    setTimeout(() => bindNotasEvents(), 0);
+    return html;
+  },
+
+  '/instrumentos': async () => {
+    return renderInstrumentos();
+  }
 };
 
-/**
- * Navega para uma rota
- * @param {string} path
- */
-export function navigate(path) {
+/* =========================================================
+   🌙 NAVEGAÇÃO CENTRAL
+========================================================= */
+
+export async function navigate(path) {
   const view = document.getElementById('view');
 
-  // fallback seguro
   const render = routes[path] || (() => `
     <section>
       <h2>⚠️ Página não encontrada</h2>
+      <p>O caminho perdeu-se no pergaminho.</p>
     </section>
   `);
 
-  view.innerHTML = render();
+  view.innerHTML = await render();
 
-  // Pequeno detalhe de UX: scroll ao topo
   window.scrollTo(0, 0);
 }
