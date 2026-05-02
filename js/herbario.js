@@ -1,12 +1,12 @@
 /**
- * Códice do Jota — Herbário Vivo (UI evoluída)
- * Tablet-friendly + categorias + colapsável + pesquisa viva
+ * Códice do Jota — Herbário Vivo (UI evoluída v2)
+ * Melhor UX: form colapsável + botão de criação + navegação limpa
  */
 
 import { db, addLog } from './db.js';
 
 /* =========================================================
-   🧠 SAFE STORE
+   🧠 STORE SAFE
 ========================================================= */
 
 function getStore(mode = 'readonly') {
@@ -95,10 +95,6 @@ function getTipoEmoji(tipo) {
   return map[(tipo || '').toLowerCase()] || '🌱';
 }
 
-/* =========================================================
-   🌿 AGRUPAR POR TIPO
-========================================================= */
-
 function groupByTipo(plantas) {
   const groups = {};
 
@@ -117,13 +113,47 @@ function groupByTipo(plantas) {
 
 export async function renderHerbario() {
   const plantas = await getPlantas();
-
   const grupos = groupByTipo(plantas);
 
   return `
     <section class="herbario">
 
       <h2>🌿 Herbário Vivo</h2>
+
+      <!-- 🔘 BOTÃO ABRIR FORM -->
+      <div class="card">
+        <button id="toggleFormBtn" style="width:100%; padding:1rem; font-size:1rem;">
+          ➕ Adicionar Planta
+        </button>
+      </div>
+
+      <!-- 🌱 FORM (OCULTO INICIALMENTE) -->
+      <form id="plantaForm" class="card herb-form hidden">
+
+        <h3>🌱 Nova Planta</h3>
+
+        <div class="grid-form">
+          <input name="nome" placeholder="Nome" required />
+          <input name="latin" placeholder="Latim" />
+          <input name="familia" placeholder="Família" />
+
+          <select name="tipo">
+            <option value="">Tipo</option>
+            <option value="folha">🌿 Folha</option>
+            <option value="fruto">🍅 Fruto</option>
+            <option value="raiz">🥕 Raiz</option>
+            <option value="aromatica">🌱 Aromática</option>
+            <option value="leguminosa">🌾 Leguminosa</option>
+          </select>
+
+          <input name="ciclo" placeholder="Ciclo" />
+          <input name="agua" placeholder="Água" />
+        </div>
+
+        <textarea name="notas" placeholder="Segredos do cultivo"></textarea>
+
+        <button type="submit">🌱 Guardar</button>
+      </form>
 
       <!-- 🔍 SEARCH -->
       <div class="card">
@@ -134,35 +164,7 @@ export async function renderHerbario() {
         />
       </div>
 
-      <!-- 🌱 FORM -->
-      <form id="plantaForm" class="card herb-form">
-
-        <h3>🌱 Adicionar Planta</h3>
-
-        <div class="grid-form">
-          <input name="nome" placeholder="Nome" required />
-          <input name="latin" placeholder="Latim" />
-          <input name="familia" placeholder="Família" />
-
-          <select name="tipo">
-            <option value="">Tipo</option>
-            <option value="folha">Folha 🌿</option>
-            <option value="fruto">Fruto 🍅</option>
-            <option value="raiz">Raiz 🥕</option>
-            <option value="aromatica">Aromática 🌱</option>
-            <option value="leguminosa">Leguminosa 🌾</option>
-          </select>
-
-          <input name="ciclo" placeholder="Ciclo" />
-          <input name="agua" placeholder="Água" />
-        </div>
-
-        <textarea name="notas" placeholder="Segredos do cultivo"></textarea>
-
-        <button type="submit">🌱 Guardar Planta</button>
-      </form>
-
-      <!-- 🌿 LISTA AGRUPADA -->
+      <!-- 🌿 LISTA -->
       <div class="herb-groups">
 
         ${Object.entries(grupos).map(([tipo, items]) => `
@@ -189,9 +191,7 @@ export async function renderHerbario() {
 
                   ${p.notas ? `<p class="notes">🪶 ${p.notas}</p>` : ''}
 
-                  <button data-delete="${p.id}">
-                    🪓 Remover
-                  </button>
+                  <button data-delete="${p.id}">🪓 Remover</button>
 
                 </div>
               `).join('')}
@@ -215,6 +215,14 @@ export async function renderHerbario() {
 export function bindHerbarioEvents() {
   const form = document.getElementById('plantaForm');
   const search = document.getElementById('herbSearch');
+  const toggleBtn = document.getElementById('toggleFormBtn');
+
+  /* 🌱 TOGGLE FORM */
+  if (toggleBtn && form) {
+    toggleBtn.addEventListener('click', () => {
+      form.classList.toggle('hidden');
+    });
+  }
 
   /* 🌱 CREATE */
   if (form) {
