@@ -8,7 +8,7 @@ const App = {
         App.loadTheme();
         App.bindEvents();
         // Iniciamos na Wiki por padrão
-        App.router('wiki');
+        App.router('home');
     },
 
     router: async (view) => {
