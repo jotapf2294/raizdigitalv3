@@ -186,3 +186,53 @@ body.dark .menu button {
 /* ===============================
    ✨ FUTURO (já preparado)
 ================================ */
+
+/* 🌿 FORM MAIS GRANDE (tablet-friendly) */
+.herb-form input,
+.herb-form select,
+.herb-form textarea {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+/* GRID MAIS LIMPO */
+.grid-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+/* 📦 GRUPOS */
+.herb-group {
+  margin-bottom: 1rem;
+}
+
+.herb-group summary {
+  cursor: pointer;
+  font-weight: bold;
+  padding: 0.8rem;
+  background: rgba(0,0,0,0.05);
+  border-radius: 6px;
+}
+
+/* 🌿 CARDS MAIS AERADOS */
+.herb-item {
+  margin: 0.5rem 0;
+}
+
+/* META LINHA */
+.meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+/* TABLET BREAKPOINT */
+@media (min-width: 768px) {
+  .grid-form {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
