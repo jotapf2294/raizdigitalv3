@@ -1,107 +1,117 @@
 /**
- * Códice do Jota — Sementes Iniciais
- * O momento em que a horta nasce com memória viva
+ * Códice do Jota — Sementes Iniciais (robusto)
  */
 
 import { db } from './db.js';
 
-/**
- * Verifica se uma store está vazia
- */
-function isStoreEmpty(storeName) {
-  return new Promise((resolve) => {
-    const tx = db.transaction(storeName, 'readonly');
-    const store = tx.objectStore(storeName);
-    const request = store.count();
+/* =========================================================
+   🧠 SAFE COUNT
+========================================================= */
 
-    request.onsuccess = () => {
-      resolve(request.result === 0);
-    };
+function countStore(storeName) {
+  return new Promise((resolve, reject) => {
+    try {
+      const tx = db.transaction(storeName, 'readonly');
+      const store = tx.objectStore(storeName);
+      const req = store.count();
+
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+
+    } catch (err) {
+      reject(err);
+    }
   });
 }
 
-/**
- * Planta sementes iniciais no Códice
- */
-async function seedIfNeeded() {
+/* =========================================================
+   🌱 SEED TALHÕES
+========================================================= */
 
-  const talhoesEmpty = await isStoreEmpty('talhoes');
-  const plantasEmpty = await isStoreEmpty('plantas');
+function seedTalhoes() {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('talhoes', 'readwrite');
+    const store = tx.objectStore('talhoes');
 
-  // Se já existe vida, não replantar (regra sagrada)
-  if (!talhoesEmpty || !plantasEmpty) {
-    console.log('🌿 Códice já contém vida. Sementes não replantadas.');
-    return;
-  }
+    const req = store.add({
+      nome: 'Canteiro Zero',
+      cultura: 'Solo experimental',
+      criadoEm: new Date().toISOString(),
+      notas: 'Origem do Códice'
+    });
 
-  console.log('🌱 A semear o Códice pela primeira vez...');
-
-  // 🌱 TALHÃO INICIAL
-  const talhoesTx = db.transaction('talhoes', 'readwrite');
-  const talhoesStore = talhoesTx.objectStore('talhoes');
-
-  talhoesStore.add({
-    nome: 'Canteiro Zero',
-    cultura: 'Solo experimental',
-    criadoEm: new Date().toISOString(),
-    notas: 'Origem do Códice'
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
   });
+}
 
-  // 🌿 PLANTAS INICIAIS (flora portuguesa base)
-  const plantasTx = db.transaction('plantas', 'readwrite');
-  const plantasStore = plantasTx.objectStore('plantas');
+/* =========================================================
+   🌿 SEED PLANTAS
+========================================================= */
 
-  const seeds = [
-    {
-      nome: 'Tomate Coração de Boi',
-      latin: 'Solanum lycopersicum',
-      ciclo: 'Verão',
-      agua: 'Média',
-      tipo: 'Fruto'
-    },
-    {
-      nome: 'Couve Galega',
-      latin: 'Brassica oleracea',
-      ciclo: 'Inverno',
-      agua: 'Média',
-      tipo: 'Folha'
-    },
-    {
-      nome: 'Alecrim',
-      latin: 'Salvia rosmarinus',
-      ciclo: 'Perene',
-      agua: 'Baixa',
-      tipo: 'Aromática'
-    },
-    {
-      nome: 'Salsa',
-      latin: 'Petroselinum crispum',
-      ciclo: 'Bianual',
-      agua: 'Média',
-      tipo: 'Folha'
-    },
-    {
-      nome: 'Feijão Verde',
-      latin: 'Phaseolus vulgaris',
-      ciclo: 'Primavera-Verão',
-      agua: 'Alta',
-      tipo: 'Leguminosa'
-    }
+function seedPlantas() {
+  const plants = [
+    { nome: 'Tomate Coração de Boi', latin: 'Solanum lycopersicum', ciclo: 'Verão', agua: 'Média', tipo: 'Fruto' },
+    { nome: 'Couve Galega', latin: 'Brassica oleracea', ciclo: 'Inverno', agua: 'Média', tipo: 'Folha' },
+    { nome: 'Alecrim', latin: 'Salvia rosmarinus', ciclo: 'Perene', agua: 'Baixa', tipo: 'Aromática' },
+    { nome: 'Salsa', latin: 'Petroselinum crispum', ciclo: 'Bianual', agua: 'Média', tipo: 'Folha' },
+    { nome: 'Feijão Verde', latin: 'Phaseolus vulgaris', ciclo: 'Verão', agua: 'Alta', tipo: 'Leguminosa' }
   ];
 
-  seeds.forEach(plant => plantasStore.add(plant));
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('plantas', 'readwrite');
+    const store = tx.objectStore('plantas');
 
-  console.log('🌿 Sementes plantadas com sucesso.');
+    let count = 0;
+
+    plants.forEach(p => {
+      const req = store.add(p);
+
+      req.onsuccess = () => {
+        count++;
+        if (count === plants.length) resolve();
+      };
+
+      req.onerror = () => reject(req.error);
+    });
+  });
 }
 
-/**
- * Função pública chamada pela app
- */
-export function seedData() {
-  if (!db) {
-    console.warn('⚠️ DB ainda não inicializada');
+/* =========================================================
+   🌱 SEED PRINCIPAL
+========================================================= */
+
+async function seedIfNeeded() {
+  const talhoesCount = await countStore('talhoes');
+  const plantasCount = await countStore('plantas');
+
+  // já tem dados
+  if (talhoesCount > 0 || plantasCount > 0) {
+    console.log('🌿 Códice já inicializado');
     return;
   }
 
-  seedIfNeeded();
-                 }
+  console.log('🌱 A semear o Códice...');
+
+  await seedTalhoes();
+  await seedPlantas();
+
+  console.log('🌿 Sementes plantadas com sucesso');
+}
+
+/* =========================================================
+   🚀 API PÚBLICA (IMPORTANTE: retorna Promise)
+========================================================= */
+
+export async function seedData() {
+  if (!db) {
+    console.warn('⚠️ DB não pronta para seed');
+    return;
+  }
+
+  try {
+    await seedIfNeeded();
+  } catch (err) {
+    console.error('Seed error:', err);
+  }
+}
