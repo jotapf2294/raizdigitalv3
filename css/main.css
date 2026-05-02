@@ -1,0 +1,141 @@
+/* ===============================
+   🌿 RESET & BASE
+================================ */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  background: #FEF3C7; /* pergaminho */
+  color: #1C1917; /* tinta */
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ===============================
+   🪵 LAYOUT
+================================ */
+#app {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  background: #92400E; /* terra */
+  color: #FEF3C7;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 4px 0 10px rgba(0,0,0,0.2);
+}
+
+/* Logo */
+.logo {
+  font-family: 'IM Fell English', serif;
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Menu */
+.menu button {
+  width: 100%;
+  margin-bottom: 0.5rem;
+  padding: 0.6rem;
+  border: none;
+  background: rgba(255,255,255,0.1);
+  color: inherit;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.menu button:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+/* Tema botão */
+.theme-btn {
+  margin-top: 2rem;
+  padding: 0.5rem;
+  background: #1D4ED8; /* água */
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+/* Main */
+main {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+/* ===============================
+   📜 COMPONENTES
+================================ */
+
+/* Cartas tipo pergaminho */
+.card {
+  background: rgba(255,255,255,0.6);
+  border: 1px solid #92400E;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.15);
+}
+
+/* Dashboard */
+.dashboard {
+  display: grid;
+  gap: 1rem;
+}
+
+/* Títulos */
+h2 {
+  font-family: 'IM Fell English', serif;
+  margin-bottom: 1rem;
+}
+
+h3 {
+  margin-bottom: 0.5rem;
+}
+
+/* Listas */
+ul {
+  padding-left: 1rem;
+}
+
+li {
+  margin-bottom: 0.3rem;
+}
+
+/* ===============================
+   🌙 DARK MODE (Noite)
+================================ */
+body.dark {
+  background: #0C0A09; /* noite */
+  color: #F5F5F4;
+}
+
+body.dark .sidebar {
+  background: #292524; /* brasa */
+}
+
+body.dark .card {
+  background: #1C1917;
+  border-color: #D97706;
+}
+
+body.dark .theme-btn {
+  background: #3B82F6;
+}
+
+/* ===============================
+   ✨ DETALHES FUTUROS
+================================ */
+/* espaço para animações, pergaminhos, etc */
