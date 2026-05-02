@@ -1,39 +1,44 @@
 <!DOCTYPE html>
-<html lang="pt" data-theme="light">
+<html lang="pt-PT">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Horta Gestão 🌱</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Códice do Jota</title>
 
-    <link rel="stylesheet" href="css/style.css">
+  <!-- Manifesto PWA -->
+  <link rel="manifest" href="manifest.json" />
 
-    <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
+  <!-- Fontes -->
+  <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&display=swap" rel="stylesheet">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="css/main.css" />
 </head>
 <body>
+  <div id="app">
+    <aside class="sidebar">
+      <h1>Códice do Jota</h1>
+      <nav>
+        <button data-route="/">Pórtico</button>
+        <button data-route="/talhoes">Talhões</button>
+        <button data-route="/herbario">Herbário</button>
+        <button data-route="/notas">Arquivo</button>
+      </nav>
+      <button id="themeToggle">🌙</button>
+    </aside>
 
-    <header class="main-header">
-        <h1>Horta 🌱</h1>
-        <button id="theme-toggle" class="circle-btn">🌓</button>
-    </header>
+    <main id="view"></main>
+  </div>
 
-    <main id="app" class="view-container">
-        <div class="fb-card"><p>A carregar sistema...</p></div>
-    </main>
+  <script src="js/db.js"></script>
+  <script src="js/seed.js"></script>
+  <script src="js/router.js"></script>
+  <script src="js/app.js"></script>
 
-    <nav class="bottom-tabs">
-        <button onclick="App.router('home')" class="tab-item">🏠</button>
-        <button onclick="App.router('zonas')" class="tab-item">🗺️</button>
-        <button onclick="App.router('wiki')" class="tab-item active">📖</button>
-        <button onclick="App.router('notas')" class="tab-item">📓</button>
-    </nav>
-
-    <div id="modal-root"></div>
-
-    <script src="js/db.js"></script>
-    <script src="js/lunar.js"></script>
-    <script src="js/wiki.js"></script>
-    <script src="js/zonas.js"></script>
-    <script src="js/main.js"></script>
-
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
 </body>
 </html>
