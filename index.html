@@ -1,33 +1,68 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Horta Gestão</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Horta Gestão 🌱</title>
+    
     <link rel="stylesheet" href="css/style.css">
+    
     <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
 </head>
 <body>
 
-    <header>
-        <h2 style="color: var(--accent)">Horta 🌱</h2>
-        <button onclick="toggleDarkMode()" style="background:none; border:none; font-size:1.5rem">🌓</button>
+    <header class="main-header">
+        <h1>Horta 🌱</h1>
+        <button id="theme-toggle" class="circle-btn">🌓</button>
     </header>
 
-    <main id="app" style="margin-top: 60px;">
+    <main id="app" class="view-container">
         </main>
 
-    <nav class="nav-bottom">
-        <button class="nav-item active" onclick="showView('home')">🏠</button>
-        <button class="nav-item" onclick="showView('zonas')">🗺️</button>
-        <button class="nav-item" onclick="showView('wiki')">📖</button>
-        <button class="nav-item" onclick="showView('notas')">📓</button>
+    <nav class="bottom-tabs">
+        <button onclick="showView('home')" class="tab-item active">🏠</button>
+        <button onclick="showView('zonas')" class="tab-item">🗺️</button>
+        <button onclick="showView('wiki')" class="tab-item">📖</button>
+        <button onclick="showView('notas')" class="tab-item">📓</button>
     </nav>
 
+    <div id="modal-root"></div>
+
     <script src="js/db.js"></script>
-    <script src="js/lunar.js"></script>
     <script src="js/wiki.js"></script>
-    <script src="js/zonas.js"></script>
-    <script src="js/main.js"></script>
+    
+    <script>
+        // Função simples para trocar de ecrã
+        function showView(viewName) {
+            // Atualizar botões
+            document.querySelectorAll('.tab-item').forEach(b => b.classList.remove('active'));
+            event.currentTarget?.classList.add('active');
+
+            const container = document.getElementById('app');
+            container.innerHTML = ''; // Limpar tudo
+
+            if (viewName === 'wiki') {
+                // Chama a função render que está dentro do js/wiki.js
+                WikiModule.render(container);
+            } else {
+                container.innerHTML = `<div class="fb-card"><h2>Em breve</h2><p>Ecrã de ${viewName}</p></div>`;
+            }
+        }
+
+        // Dark Mode Toggle
+        document.getElementById('theme-toggle').onclick = () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        };
+
+        // Carregar tema salvo
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+
+        // Iniciar na Wiki para testarmos já
+        window.onload = () => showView('wiki');
+    </script>
 </body>
 </html>
