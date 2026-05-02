@@ -1,85 +1,52 @@
-/**
- * Códice do Jota — Núcleo de Arranque (versão viva)
- * Orquestra DB, router, UI e sementes iniciais
- */
-
 import { navigate } from './router.js';
 import { initDB } from './db.js';
 import { seedData } from './seed.js';
 
-/* =========================================================
-   🎨 TEMA — persistência solar/lunar
-========================================================= */
-
 function applySavedTheme() {
   const saved = localStorage.getItem('codex-theme');
-
-  if (saved === 'dark') {
-    document.body.classList.add('dark');
-  } else {
-    document.body.classList.remove('dark');
-  }
+  document.body.classList.toggle('dark', saved === 'dark');
 }
 
 function setupThemeToggle() {
   const btn = document.getElementById('themeToggle');
-
   if (!btn) return;
 
-  btn.addEventListener('click', () => {
+  btn.onclick = () => {
     document.body.classList.toggle('dark');
-
-    const isDark = document.body.classList.contains('dark');
-    localStorage.setItem('codex-theme', isDark ? 'dark' : 'light');
-  });
+    localStorage.setItem(
+      'codex-theme',
+      document.body.classList.contains('dark') ? 'dark' : 'light'
+    );
+  };
 }
-
-/* =========================================================
-   🧭 NAVEGAÇÃO — liga botões do grimório
-========================================================= */
 
 function setupNavigation() {
   document.querySelectorAll('[data-route]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const path = btn.dataset.route;
-      navigate(path);
-    });
+    btn.onclick = () => navigate(btn.dataset.route);
   });
 }
 
-/* =========================================================
-   🌱 BOOT SEGURO — evita corrida de inicialização
-========================================================= */
-
 async function boot() {
-  console.log('📜 A abrir o Códice...');
-
   try {
-    // 🌙 Tema primeiro (evita flash)
+    console.log('📜 Códice a arrancar...');
+
     applySavedTheme();
 
-    // 🧠 Base de dados (memória da terra)
     await initDB();
-
-    // 🌱 Sementes iniciais (apenas 1x)
     await seedData();
 
-    // 🧭 UI interativa
     setupNavigation();
     setupThemeToggle();
 
-    // 🏛️ Pórtico inicial
-    navigate('/');
+    await navigate('/');
 
-    console.log('🌿 Códice pronto para cultivo.');
+    console.log('🌿 Códice pronto.');
 
   } catch (err) {
-    console.error('❌ Erro no arranque do Códice:', err);
+    console.error('❌ Boot error:', err);
+    document.getElementById('view').innerHTML =
+      `<h2>Erro a iniciar o Códice</h2>`;
   }
 }
-
-/* =========================================================
-   🚀 ARRANQUE
-========================================================= */
 
 document.addEventListener('DOMContentLoaded', boot);
