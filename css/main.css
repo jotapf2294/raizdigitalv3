@@ -12,7 +12,7 @@ body {
   background: #FEF3C7;
   color: #1C1917;
   transition: background 0.4s ease, color 0.4s ease;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 /* textura leve */
@@ -61,16 +61,17 @@ body::before {
 .menu button {
   width: 100%;
   margin-bottom: 0.6rem;
-  padding: 0.7rem;
+  padding: 0.75rem;
 
   border: 1px solid rgba(255,255,255,0.15);
   background: rgba(255,255,255,0.08);
   color: inherit;
 
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
 
   transition: 0.2s;
+  font-size: 0.95rem;
 }
 
 .menu button:hover {
@@ -83,14 +84,15 @@ body::before {
 ================================ */
 .theme-btn {
   margin-top: 2rem;
-  padding: 0.6rem;
+  padding: 0.7rem;
 
   background: #1D4ED8;
   border: none;
   color: white;
 
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
+  font-weight: 500;
 }
 
 /* ===============================
@@ -105,12 +107,12 @@ main {
    📜 CARDS
 ================================ */
 .card {
-  background: rgba(255,255,255,0.65);
+  background: rgba(255,255,255,0.7);
   border: 1px solid rgba(146,64,14,0.6);
-  border-radius: 10px;
+  border-radius: 12px;
 
-  padding: 1.2rem;
-  margin-bottom: 1rem;
+  padding: 1.4rem;
+  margin-bottom: 1.2rem;
 
   box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 }
@@ -133,7 +135,7 @@ body.dark .card {
 }
 
 /* ===============================
-   📱 BOTTOM NAV (NOVO)
+   📱 BOTTOM NAV
 ================================ */
 .bottom-nav {
   position: fixed;
@@ -146,7 +148,7 @@ body.dark .card {
   align-items: center;
 
   background: #92400E;
-  padding: 0.6rem 0;
+  padding: 0.7rem 0;
 
   z-index: 999;
   box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
@@ -156,11 +158,11 @@ body.dark .card {
   background: none;
   border: none;
   color: #FEF3C7;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
 }
 
 /* ===============================
-   📱 RESPONSIVE SWITCH
+   📱 RESPONSIVE
 ================================ */
 @media (max-width: 768px) {
 
@@ -173,30 +175,91 @@ body.dark .card {
   }
 
   main {
-    padding-bottom: 4.5rem;
+    padding: 1.2rem;
+    padding-bottom: 5rem;
   }
 }
 
 /* ===============================
-   ✨ FORM BASE (herbário futuro)
+   ✨ FORM BASE
 ================================ */
-.herb-form input,
-.herb-form select,
-.herb-form textarea {
+.card input,
+.card select,
+.card textarea {
+  width: 100%;
+  font-size: 1rem;
+  padding: 1rem;
+  margin-bottom: 0.9rem;
+
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.2);
+  outline: none;
+}
+
+/* textarea confortável */
+.card textarea {
+  min-height: 160px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+/* botões */
+.card button {
   width: 100%;
   padding: 1rem;
   font-size: 1rem;
+
+  border-radius: 8px;
+  border: none;
+
+  background: #1D4ED8;
+  color: white;
+
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.card button:hover {
+  transform: translateY(-1px);
+}
+
+/* ===============================
+   📱 TABLET (IMPORTANTE — aqui estava o problema)
+================================ */
+@media (min-width: 768px) {
+
+  main {
+    padding: 2.5rem;
+  }
+
+  .card {
+    padding: 1.6rem;
+  }
+
+  .card input,
+  .card select,
+  .card textarea {
+    font-size: 1.1rem;
+    padding: 1.2rem;
+  }
+
+  .card textarea {
+    min-height: 220px;
+  }
+
+  .card button {
+    padding: 1.2rem;
+    font-size: 1.05rem;
+  }
+}
+
+/* ===============================
+   EXTRA: sensação mais “app agrícola”
+================================ */
+.card h3 {
   margin-bottom: 0.8rem;
 }
 
-.grid-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-}
-
-@media (min-width: 768px) {
-  .grid-form {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
+.card p {
+  margin-bottom: 0.4rem;
 }
