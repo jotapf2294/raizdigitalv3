@@ -1,23 +1,19 @@
-const db = new Dexie("HortaMasterDB");
+const db = new Dexie("MinhaHortaDB");
 
 db.version(1).stores({
-    zonas: '++id, nome, tipo, icone',
-    especies: '++id, nome, luaIdeal, tempoCrescimento',
-    cultivos: '++id, zonaId, especieId, dataInicio',
-    colheitas: '++id, data, peso, qualidade'
+    especies: '++id, nome, categoria',
+    zonas: '++id, nome',
+    colheitas: '++id, nome, data',
+    notas: '++id, titulo'
 });
 
-// Seed data para a Wiki (Já vem com espécies comuns)
-async function popularWiki() {
-    const count = await db.especies.count();
-    if (count === 0) {
-        await db.especies.bulkAdd([
-            { nome: "Alface", luaIdeal: "Crescente", icon: "🥬" },
-            { nome: "Tomate", luaIdeal: "Crescente", icon: "🍅" },
-            { nome: "Cenoura", luaIdeal: "Minguante", icon: "🥕" },
-            { nome: "Batata", luaIdeal: "Minguante", icon: "🥔" }
-        ]);
-    }
+// Função para alternar Dark Mode
+function toggleDarkMode() {
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('horta-theme', theme);
 }
 
-popularWiki();
+// Carregar tema salvo
+const savedTheme = localStorage.getItem('horta-theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
