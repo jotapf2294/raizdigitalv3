@@ -1,22 +1,21 @@
 /**
- * Códice do Jota — Herbário Vivo (Fase IV corrigida)
+ * Códice do Jota — Herbário Vivo (versão evoluída)
+ * CRUD + categorias + pesquisa viva
  */
 
 import { db, addLog } from './db.js';
 
 /* =========================================================
-   🧠 SAFE DB CHECK
+   🧠 SAFE STORE
 ========================================================= */
 
 function getStore(mode = 'readonly') {
-  if (!db) throw new Error('DB ainda não inicializada');
-
-  const tx = db.transaction('plantas', mode);
-  return tx.objectStore('plantas');
+  if (!db) throw new Error('DB não inicializada');
+  return db.transaction('plantas', mode).objectStore('plantas');
 }
 
 /* =========================================================
-   🌿 CREATE
+   🌱 CREATE
 ========================================================= */
 
 export function createPlanta(data) {
@@ -37,15 +36,11 @@ export function createPlanta(data) {
     });
 
     request.onsuccess = () => {
-      addLog(`🌿 Planta adicionada ao Herbário: ${data.nome}`);
-    };
-
-    request.onerror = () => {
-      console.error('Erro ao criar planta');
+      addLog(`🌿 Planta adicionada: ${data.nome}`);
     };
 
   } catch (err) {
-    console.error('DB error:', err);
+    console.error(err);
   }
 }
 
@@ -56,7 +51,6 @@ export function createPlanta(data) {
 export function deletePlanta(id) {
   try {
     const store = getStore('readwrite');
-
     store.delete(id);
 
     addLog(`🪓 Planta removida: ${id}`);
@@ -86,6 +80,39 @@ export function getPlantas() {
 }
 
 /* =========================================================
+   🧠 FILTRO / PESQUISA
+========================================================= */
+
+function filterPlantas(plantas, query) {
+  if (!query) return plantas;
+
+  const q = query.toLowerCase();
+
+  return plantas.filter(p =>
+    (p.nome || '').toLowerCase().includes(q) ||
+    (p.familia || '').toLowerCase().includes(q) ||
+    (p.tipo || '').toLowerCase().includes(q) ||
+    (p.latin || '').toLowerCase().includes(q)
+  );
+}
+
+/* =========================================================
+   🌿 EMOJI POR TIPO
+========================================================= */
+
+function getTipoEmoji(tipo) {
+  const map = {
+    'folha': '🌿',
+    'fruto': '🍅',
+    'raiz': '🥕',
+    'aromatica': '🌱',
+    'leguminosa': '🌾'
+  };
+
+  return map[(tipo || '').toLowerCase()] || '🌱';
+}
+
+/* =========================================================
    🖼️ RENDER
 ========================================================= */
 
@@ -97,42 +124,58 @@ export async function renderHerbario() {
 
       <h2>🌿 Herbário Vivo</h2>
 
+      <!-- 🔍 SEARCH -->
+      <div class="card">
+        <input id="herbSearch" placeholder="🔍 Procurar planta..." />
+      </div>
+
+      <!-- FORM -->
       <form id="plantaForm" class="card">
         <h3>Adicionar Planta</h3>
 
-        <input name="nome" placeholder="Nome vulgar" required />
-        <input name="latin" placeholder="Nome latino" />
+        <input name="nome" placeholder="Nome" required />
+        <input name="latin" placeholder="Latim" />
         <input name="familia" placeholder="Família" />
+
+        <select name="tipo">
+          <option value="">Tipo</option>
+          <option value="folha">Folha 🌿</option>
+          <option value="fruto">Fruto 🍅</option>
+          <option value="raiz">Raiz 🥕</option>
+          <option value="aromatica">Aromática 🌱</option>
+          <option value="leguminosa">Leguminosa 🌾</option>
+        </select>
+
         <input name="ciclo" placeholder="Ciclo" />
         <input name="agua" placeholder="Água" />
-        <input name="tipo" placeholder="Tipo" />
 
-        <input name="aliados" placeholder="Aliados" />
-        <input name="inimigos" placeholder="Inimigos" />
-
-        <textarea name="notas" placeholder="Segredos do cultivo"></textarea>
+        <textarea name="notas" placeholder="Segredos"></textarea>
 
         <button type="submit">🌱 Guardar</button>
       </form>
 
-      <div class="lista-herbario">
+      <!-- LISTA -->
+      <div id="herbList" class="lista-herbario">
 
-        ${
-          plantas.length === 0
-            ? `<p>🌿 Herbário vazio</p>`
-            : plantas.map(p => `
-                <div class="card">
-                  <h3>${p.nome}</h3>
-                  <p><em>${p.latin || ''}</em></p>
+        ${plantas.map(p => `
+          <div class="card herb-item" data-name="${p.nome}" data-family="${p.familia}" data-type="${p.tipo}">
 
-                  <p>Família: ${p.familia || '—'}</p>
-                  <p>Ciclo: ${p.ciclo || '—'}</p>
-                  <p>Água: ${p.agua || '—'}</p>
+            <h3>
+              ${getTipoEmoji(p.tipo)} ${p.nome}
+            </h3>
 
-                  <button data-delete="${p.id}">🪓 Remover</button>
-                </div>
-              `).join('')
-        }
+            <p><em>${p.latin || ''}</em></p>
+
+            <p>📚 Família: ${p.familia || '—'}</p>
+            <p>🌿 Tipo: ${p.tipo || '—'}</p>
+            <p>💧 Água: ${p.agua || '—'}</p>
+
+            ${p.notas ? `<p>🪶 ${p.notas}</p>` : ''}
+
+            <button data-delete="${p.id}">🪓 Remover</button>
+
+          </div>
+        `).join('')}
 
       </div>
 
@@ -141,12 +184,14 @@ export async function renderHerbario() {
 }
 
 /* =========================================================
-   🔗 EVENTS (SEM reload)
+   🔗 EVENTS
 ========================================================= */
 
 export function bindHerbarioEvents() {
   const form = document.getElementById('plantaForm');
+  const search = document.getElementById('herbSearch');
 
+  /* 🌱 CREATE */
   if (form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -156,16 +201,32 @@ export function bindHerbarioEvents() {
       createPlanta(data);
       form.reset();
 
-      // re-render suave (sem reload brutal)
-      setTimeout(() => window.dispatchEvent(new Event('navigate-refresh')), 50);
+      window.dispatchEvent(new Event('navigate-refresh'));
     });
   }
 
+  /* 🪓 DELETE */
   document.querySelectorAll('[data-delete]').forEach(btn => {
     btn.addEventListener('click', () => {
       deletePlanta(Number(btn.dataset.delete));
-
-      setTimeout(() => window.dispatchEvent(new Event('navigate-refresh')), 50);
+      window.dispatchEvent(new Event('navigate-refresh'));
     });
   });
+
+  /* 🔍 SEARCH LIVE */
+  if (search) {
+    search.addEventListener('input', () => {
+      const q = search.value.toLowerCase();
+
+      document.querySelectorAll('.herb-item').forEach(item => {
+        const text = (
+          item.dataset.name +
+          item.dataset.family +
+          item.dataset.type
+        ).toLowerCase();
+
+        item.style.display = text.includes(q) ? 'block' : 'none';
+      });
+    });
+  }
 }
