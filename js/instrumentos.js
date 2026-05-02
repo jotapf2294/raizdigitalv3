@@ -1,14 +1,12 @@
 /**
  * Códice do Jota — Instrumentos do Cultivo (Fase VI)
- * Ferramentas agrícolas digitais offline
- * Astrolábio + Hidrómetro + Balança NPK + Diário de Campo
+ * versão SPA consistente
  */
 
 import { addLog } from './db.js';
 
 /* =========================================================
-   🌙 ASTROLÁBIO LUNAR (reforçado)
-   Decide tipo de plantio baseado no dia
+   🌙 ASTROLÁBIO LUNAR
 ========================================================= */
 
 export function getPlantingAdvice(date = new Date()) {
@@ -18,69 +16,59 @@ export function getPlantingAdvice(date = new Date()) {
   const days = (date - newMoonRef) / (1000 * 60 * 60 * 24);
   const phase = (days % lunarCycle) / lunarCycle;
 
-  let advice = '';
-
-  if (phase < 0.125) advice = '🌑 Descanso do solo';
-  else if (phase < 0.25) advice = '🌿 Folhas — crescimento aéreo';
-  else if (phase < 0.5) advice = '🍅 Frutos — produção';
-  else if (phase < 0.75) advice = '🥕 Raízes — força subterrânea';
-  else advice = '🌑 Regeneração';
-
-  return advice;
+  if (phase < 0.125) return '🌑 Descanso do solo';
+  if (phase < 0.25) return '🌿 Folhas — crescimento aéreo';
+  if (phase < 0.5) return '🍅 Frutos — produção';
+  if (phase < 0.75) return '🥕 Raízes — força subterrânea';
+  return '🌑 Regeneração';
 }
 
 /* =========================================================
-   💧 HIDRÓMETRO AGRÍCOLA
-   Estima necessidade de água
+   💧 HIDRÓMETRO
 ========================================================= */
 
 export function calculateWaterNeeds(areaM2, cropType = 'misto', season = 'verão') {
-  let base = areaM2 * 2.5; // litros base por m²
+  const base = areaM2 * 2.5;
 
   const cropFactor = {
-    'folha': 1.2,
-    'fruto': 1.5,
-    'raiz': 0.9,
-    'misto': 1.0
+    folha: 1.2,
+    fruto: 1.5,
+    raiz: 0.9,
+    misto: 1
   };
 
   const seasonFactor = {
-    'verão': 1.6,
-    'primavera': 1.2,
-    'outono': 1.0,
-    'inverno': 0.7
+    verão: 1.6,
+    primavera: 1.2,
+    outono: 1,
+    inverno: 0.7
   };
 
-  const total =
+  return Math.round(
     base *
     (cropFactor[cropType] || 1) *
-    (seasonFactor[season] || 1);
-
-  return Math.round(total);
+    (seasonFactor[season] || 1)
+  );
 }
 
 /* =========================================================
-   ⚗️ BALANÇA NPK SIMPLIFICADA
-   Sugestão de adubo baseada em input de solo
+   ⚗️ NPK
 ========================================================= */
 
 export function suggestFertilizer(n, p, k) {
-  const deficiencies = [];
+  const lacks = [];
 
-  if (n < 50) deficiencies.push('Azoto (N) — crescimento');
-  if (p < 50) deficiencies.push('Fósforo (P) — raízes');
-  if (k < 50) deficiencies.push('Potássio (K) — resistência');
+  if (n < 50) lacks.push('Azoto (N)');
+  if (p < 50) lacks.push('Fósforo (P)');
+  if (k < 50) lacks.push('Potássio (K)');
 
-  if (deficiencies.length === 0) {
-    return '🌱 Solo equilibrado — não necessita intervenção';
-  }
-
-  return `⚗️ Reforçar: ${deficiencies.join(', ')}`;
+  return lacks.length
+    ? `⚗️ Reforçar: ${lacks.join(', ')}`
+    : '🌱 Solo equilibrado';
 }
 
 /* =========================================================
-   📜 DIÁRIO DE CAMPO
-   Registo rápido de operações agrícolas
+   📜 DIÁRIO DE CAMPO (IndexedDB consistente)
 ========================================================= */
 
 export function addFieldLog(entry) {
@@ -98,51 +86,47 @@ export function addFieldLog(entry) {
 
   localStorage.setItem('campo-logs', JSON.stringify(logs));
 
-  addLog(`📍 Diário de campo: ${entry.texto}`);
+  addLog(`📍 ${entry.texto}`);
 }
-
-/* =========================================================
-   📜 LISTAR DIÁRIO
-========================================================= */
 
 export function getFieldLogs() {
   return JSON.parse(localStorage.getItem('campo-logs') || '[]');
 }
 
 /* =========================================================
-   🖼️ MINI DASHBOARD DOS INSTRUMENTOS
+   🧪 RENDER INSTRUMENTOS
 ========================================================= */
 
 export function renderInstrumentos() {
+  const advice = getPlantingAdvice();
+  const water = calculateWaterNeeds(50, 'fruto', 'verão');
+  const fertilizer = suggestFertilizer(40, 70, 30);
+
   return `
     <section class="instrumentos">
 
       <h2>🧪 Instrumentos do Cultivo</h2>
 
-      <!-- ASTROLÁBIO -->
       <div class="card">
-        <h3>🌙 Astrolábio Lunar</h3>
-        <p>${getPlantingAdvice()}</p>
+        <h3>🌙 Astrolábio</h3>
+        <p>${advice}</p>
       </div>
 
-      <!-- HIDRÓMETRO -->
       <div class="card">
         <h3>💧 Hidrómetro</h3>
-        <p>Exemplo: 50m² tomate → ${calculateWaterNeeds(50, 'fruto', 'verão')} L/dia</p>
+        <p>50m² tomate → ${water} L/dia</p>
       </div>
 
-      <!-- BALANÇA NPK -->
       <div class="card">
-        <h3>⚗️ Balança NPK</h3>
-        <p>${suggestFertilizer(40, 70, 30)}</p>
+        <h3>⚗️ NPK</h3>
+        <p>${fertilizer}</p>
       </div>
 
-      <!-- DIÁRIO -->
       <div class="card">
         <h3>📜 Diário de Campo</h3>
 
-        <button onclick="window.codexLogExample()">
-          + Registo rápido (demo)
+        <button id="logDemoBtn">
+          + Registo rápido
         </button>
 
       </div>
@@ -152,15 +136,24 @@ export function renderInstrumentos() {
 }
 
 /* =========================================================
-   🔗 DEMO GLOBAL (temporário UI)
+   🔗 EVENTS (SPA safe)
 ========================================================= */
 
-window.codexLogExample = function () {
-  addFieldLog({
-    texto: 'Regado Canteiro Zero',
-    tipo: 'rega',
-    custo: 0
-  });
+export function bindInstrumentosEvents() {
+  const btn = document.getElementById('logDemoBtn');
 
-  alert('📍 Registo guardado no Diário de Campo');
-};
+  if (btn) {
+    btn.addEventListener('click', () => {
+      addFieldLog({
+        texto: 'Regado Canteiro Zero',
+        tipo: 'rega'
+      });
+
+      // feedback leve (sem alert)
+      btn.textContent = '✔ Registo guardado';
+      setTimeout(() => {
+        btn.textContent = '+ Registo rápido';
+      }, 1200);
+    });
+  }
+}
