@@ -83,7 +83,6 @@ function groupByCategoria(notas) {
 
   notas.forEach(n => {
     const key = n.categoria || 'geral';
-
     if (!groups[key]) groups[key] = [];
     groups[key].push(n);
   });
@@ -126,36 +125,42 @@ export async function renderNotas() {
         />
       </div>
 
-      <!-- 🌱 FORM -->
-      <form id="notaForm" class="card">
+      <!-- 🌱 FORM TOGGLE -->
+      <div class="card">
 
-        <h3>Nova Inscrição</h3>
+        <button id="toggleNotaForm" class="toggle-btn">
+          ➕ Nova Inscrição
+        </button>
 
-        <input name="titulo" placeholder="Título" required />
+        <form id="notaForm" class="nota-form collapsed">
 
-        <select name="categoria">
-          <option value="geral">📜 Geral</option>
-          <option value="poda">✂️ Poda</option>
-          <option value="rega">💧 Rega</option>
-          <option value="solo">🌱 Solo</option>
-          <option value="pragas">🐛 Pragas</option>
-          <option value="dicas">💡 Dicas</option>
-        </select>
+          <input name="titulo" placeholder="Título" required />
 
-        <input name="tags" placeholder="Tags (tomate, inverno...)" />
+          <select name="categoria">
+            <option value="geral">📜 Geral</option>
+            <option value="poda">✂️ Poda</option>
+            <option value="rega">💧 Rega</option>
+            <option value="solo">🌱 Solo</option>
+            <option value="pragas">🐛 Pragas</option>
+            <option value="dicas">💡 Dicas</option>
+          </select>
 
-        <textarea name="conteudo" placeholder="Escreve o conhecimento da terra..."></textarea>
+          <input name="tags" placeholder="Tags (tomate, inverno...)" />
 
-        <button type="submit">📜 Guardar Nota</button>
+          <textarea name="conteudo" placeholder="Escreve o conhecimento da terra..."></textarea>
 
-      </form>
+          <button type="submit">📜 Guardar Nota</button>
+
+        </form>
+
+      </div>
 
       <!-- 📂 GRUPOS -->
       <div class="nota-groups">
 
         ${Object.entries(grupos).map(([cat, items]) => `
           
-          <details open class="herb-group">
+          <details class="herb-group" open>
 
             <summary>
               ${categoriaEmoji(cat)} ${cat.toUpperCase()} (${items.length})
@@ -204,6 +209,14 @@ export async function renderNotas() {
 export function bindNotasEvents() {
   const form = document.getElementById('notaForm');
   const search = document.getElementById('notaSearch');
+  const toggleBtn = document.getElementById('toggleNotaForm');
+
+  /* 🌱 TOGGLE FORM */
+  if (toggleBtn && form) {
+    toggleBtn.addEventListener('click', () => {
+      form.classList.toggle('collapsed');
+    });
+  }
 
   /* 📜 CREATE */
   if (form) {
