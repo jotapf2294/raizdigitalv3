@@ -1,6 +1,6 @@
 /**
- * Códice do Jota — Memória da Terra (versão estabilizada)
- * IndexedDB: base agrícola persistente offline
+ * Códice do Jota — Memória da Terra (núcleo evoluído)
+ * IndexedDB robusto + utilitários reutilizáveis
  */
 
 export const DB_NAME = 'codiceDB';
@@ -9,35 +9,45 @@ export const DB_VERSION = 1;
 export let db;
 
 /* =========================================================
-   🧠 INICIALIZAÇÃO DA BASE DE DADOS
+   🧠 STATE INTERNO
+========================================================= */
+
+let dbReadyPromise = null;
+
+/* =========================================================
+   🚀 INIT DB (singleton + safe)
 ========================================================= */
 
 export function initDB() {
-  return new Promise((resolve, reject) => {
+  if (dbReadyPromise) return dbReadyPromise;
+
+  dbReadyPromise = new Promise((resolve, reject) => {
 
     const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+    /* =====================================================
+       🏗️ MIGRAÇÕES
+    ===================================================== */
 
     request.onupgradeneeded = (event) => {
       const database = event.target.result;
 
       // 🌱 TALHÕES
       if (!database.objectStoreNames.contains('talhoes')) {
-        const talhoes = database.createObjectStore('talhoes', {
+        const store = database.createObjectStore('talhoes', {
           keyPath: 'id',
           autoIncrement: true
         });
-
-        talhoes.createIndex('nome', 'nome', { unique: false });
+        store.createIndex('nome', 'nome', { unique: false });
       }
 
       // 🌿 PLANTAS
       if (!database.objectStoreNames.contains('plantas')) {
-        const plantas = database.createObjectStore('plantas', {
+        const store = database.createObjectStore('plantas', {
           keyPath: 'id',
           autoIncrement: true
         });
-
-        plantas.createIndex('nome', 'nome', { unique: false });
+        store.createIndex('nome', 'nome', { unique: false });
       }
 
       // 📜 NOTAS
@@ -57,6 +67,10 @@ export function initDB() {
       }
     };
 
+    /* =====================================================
+       ✅ SUCCESS
+    ===================================================== */
+
     request.onsuccess = () => {
       db = request.result;
 
@@ -65,25 +79,66 @@ export function initDB() {
       resolve(db);
     };
 
+    /* =====================================================
+       ❌ ERROR
+    ===================================================== */
+
     request.onerror = () => {
       console.error('❌ Falha ao abrir o Códice (IndexedDB)');
       reject(request.error);
     };
   });
+
+  return dbReadyPromise;
 }
 
 /* =========================================================
-   🪵 LOGS — memória operacional
+   🧪 SAFE DB ACCESSOR
 ========================================================= */
 
-export function addLog(entry) {
-  if (!db) return;
+export function getDB() {
+  if (!db) {
+    throw new Error('DB ainda não inicializada. Chama initDB() primeiro.');
+  }
+  return db;
+}
 
-  const tx = db.transaction('logs', 'readwrite');
-  const store = tx.objectStore('logs');
+/* =========================================================
+   🪵 LOG SYSTEM (robusto)
+========================================================= */
 
-  store.add({
-    message: entry,
-    date: new Date().toISOString()
-  });
+export function addLog(message, type = 'info') {
+  try {
+    if (!db) {
+      console.warn('🪵 Log ignorado (DB não pronta)');
+      return;
+    }
+
+    const tx = db.transaction('logs', 'readwrite');
+    const store = tx.objectStore('logs');
+
+    const request = store.add({
+      message,
+      type,
+      date: new Date().toISOString()
+    });
+
+    request.onerror = () => {
+      console.warn('🪵 Falha ao gravar log');
+    };
+
+  } catch (err) {
+    console.error('Log system error:', err);
+  }
+}
+
+/* =========================================================
+   🧹 UTILITY — future proof
+========================================================= */
+
+/**
+ * Espera pela DB estar pronta (use em módulos críticos)
+ */
+export async function whenDBReady() {
+  return await initDB();
 }
