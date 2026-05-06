@@ -1,17 +1,16 @@
-const CACHE_NAME = 'babe-pwa-v1';
+const CACHE_NAME = 'babe-pwa-v2';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/css/style.css',
-  '/js/app.js',
-  '/js/db.js',
-  '/js/ui.js',
-  '/js/modules/ingredientes.js',
-  '/js/modules/receitas.js',
-  '/js/modules/agenda.js',
-  '/js/modules/dashboard.js',
-  '/js/lib/dexie.min.js',
-  '/manifest.json'
+  './',
+  './index.html',
+  './css/style.css',
+  './js/app.js',
+  './js/db.js',
+  './js/ui.js',
+  './js/modules/ingredientes.js',
+  './js/modules/receitas.js',
+  './js/modules/agenda.js',
+  './js/modules/dashboard.js',
+  './manifest.json'
 ];
 
 self.addEventListener('install', e => {
