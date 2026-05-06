@@ -1,6 +1,5 @@
-import Dexie from './lib/dexie.min.js';
-
-export const db = new Dexie('BabeBakeryDB');
+// Dexie já está no window por causa do CDN
+const db = new Dexie('BabeBakeryDB');
 
 db.version(1).stores({
   ingredientes: '++id, nome, unidade, precoCompra, quantidade, estoqueMinimo',
@@ -9,13 +8,14 @@ db.version(1).stores({
   config: 'key, value'
 });
 
-// Config padrão
 db.on('populate', async () => {
   await db.config.bulkAdd([
-    { key: 'margemPadrao', value: 100 }, // 100%
+    { key: 'margemPadrao', value: 100 },
     { key: 'moeda', value: 'EUR' }
   ]);
 });
+
+export { db };
 
 export async function exportDB() {
   const data = {
