@@ -1,144 +1,44 @@
-/**
- * Códice do Jota — Memória da Terra (núcleo evoluído)
- * IndexedDB robusto + utilitários reutilizáveis
- */
+import Dexie from './lib/dexie.min.js';
 
-export const DB_NAME = 'codiceDB';
-export const DB_VERSION = 1;
+export const db = new Dexie('BabeBakeryDB');
 
-export let db;
+db.version(1).stores({
+  ingredientes: '++id, nome, unidade, precoCompra, quantidade, estoqueMinimo',
+  receitas: '++id, nome, rendimento, itens, custoTotal, precoVenda, margem',
+  agenda: '++id, data, receitaId, quantidade, status, cliente',
+  config: 'key, value'
+});
 
-/* =========================================================
-   🧠 STATE INTERNO
-========================================================= */
+// Config padrão
+db.on('populate', async () => {
+  await db.config.bulkAdd([
+    { key: 'margemPadrao', value: 100 }, // 100%
+    { key: 'moeda', value: 'EUR' }
+  ]);
+});
 
-let dbReadyPromise = null;
+export async function exportDB() {
+  const data = {
+    ingredientes: await db.ingredientes.toArray(),
+    receitas: await db.receitas.toArray(),
+    agenda: await db.agenda.toArray(),
+    config: await db.config.toArray(),
+    exportDate: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `babe-backup-${Date.now()}.json`; a.click();
+}
 
-/* =========================================================
-   🚀 INIT DB (singleton + safe)
-========================================================= */
-
-export function initDB() {
-  if (dbReadyPromise) return dbReadyPromise;
-
-  dbReadyPromise = new Promise((resolve, reject) => {
-
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-    /* =====================================================
-       🏗️ MIGRAÇÕES
-    ===================================================== */
-
-    request.onupgradeneeded = (event) => {
-      const database = event.target.result;
-
-      // 🌱 TALHÕES
-      if (!database.objectStoreNames.contains('talhoes')) {
-        const store = database.createObjectStore('talhoes', {
-          keyPath: 'id',
-          autoIncrement: true
-        });
-        store.createIndex('nome', 'nome', { unique: false });
-      }
-
-      // 🌿 PLANTAS
-      if (!database.objectStoreNames.contains('plantas')) {
-        const store = database.createObjectStore('plantas', {
-          keyPath: 'id',
-          autoIncrement: true
-        });
-        store.createIndex('nome', 'nome', { unique: false });
-      }
-
-      // 📜 NOTAS
-      if (!database.objectStoreNames.contains('notas')) {
-        database.createObjectStore('notas', {
-          keyPath: 'id',
-          autoIncrement: true
-        });
-      }
-
-      // 🪵 LOGS
-      if (!database.objectStoreNames.contains('logs')) {
-        database.createObjectStore('logs', {
-          keyPath: 'id',
-          autoIncrement: true
-        });
-      }
-    };
-
-    /* =====================================================
-       ✅ SUCCESS
-    ===================================================== */
-
-    request.onsuccess = () => {
-      db = request.result;
-
-      console.log('🧠 Códice: memória da terra ativa');
-
-      resolve(db);
-    };
-
-    /* =====================================================
-       ❌ ERROR
-    ===================================================== */
-
-    request.onerror = () => {
-      console.error('❌ Falha ao abrir o Códice (IndexedDB)');
-      reject(request.error);
-    };
+export async function importDB(file) {
+  const text = await file.text();
+  const data = JSON.parse(text);
+  await db.transaction('rw', db.tables, async () => {
+    await Promise.all(db.tables.map(t => t.clear()));
+    if (data.ingredientes) await db.ingredientes.bulkAdd(data.ingredientes);
+    if (data.receitas) await db.receitas.bulkAdd(data.receitas);
+    if (data.agenda) await db.agenda.bulkAdd(data.agenda);
+    if (data.config) await db.config.bulkAdd(data.config);
   });
-
-  return dbReadyPromise;
-}
-
-/* =========================================================
-   🧪 SAFE DB ACCESSOR
-========================================================= */
-
-export function getDB() {
-  if (!db) {
-    throw new Error('DB ainda não inicializada. Chama initDB() primeiro.');
-  }
-  return db;
-}
-
-/* =========================================================
-   🪵 LOG SYSTEM (robusto)
-========================================================= */
-
-export function addLog(message, type = 'info') {
-  try {
-    if (!db) {
-      console.warn('🪵 Log ignorado (DB não pronta)');
-      return;
-    }
-
-    const tx = db.transaction('logs', 'readwrite');
-    const store = tx.objectStore('logs');
-
-    const request = store.add({
-      message,
-      type,
-      date: new Date().toISOString()
-    });
-
-    request.onerror = () => {
-      console.warn('🪵 Falha ao gravar log');
-    };
-
-  } catch (err) {
-    console.error('Log system error:', err);
-  }
-}
-
-/* =========================================================
-   🧹 UTILITY — future proof
-========================================================= */
-
-/**
- * Espera pela DB estar pronta (use em módulos críticos)
- */
-export async function whenDBReady() {
-  return await initDB();
 }
