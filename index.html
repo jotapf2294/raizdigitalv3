@@ -1,68 +1,46 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
-  <title>Códice do Jota</title>
-
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#7C2D12" />
-
-  <!-- Fonte -->
-  <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&display=swap" rel="stylesheet">
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="css/main.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#E8B4B8">
+  <title>Babe's Bakery Gestão</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/lib/dexie.min.js"></script>
 </head>
-
 <body>
+  <header>
+    <h1>Babe's Bakery <span id="theme-toggle">🌙</span></h1>
+    <nav>
+      <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+      <button class="tab-btn" data-tab="ingredientes">Ingredientes</button>
+      <button class="tab-btn" data-tab="receitas">Receitas</button>
+      <button class="tab-btn" data-tab="agenda">Agenda</button>
+      <button class="tab-btn" data-tab="config">Config</button>
+    </nav>
+  </header>
 
-  <div id="app">
+  <main>
+    <section id="dashboard" class="tab-content active"></section>
+    <section id="ingredientes" class="tab-content"></section>
+    <section id="receitas" class="tab-content"></section>
+    <section id="agenda" class="tab-content"></section>
+    <section id="config" class="tab-content"></section>
+  </main>
 
-    <!-- 🪵 SIDEBAR (desktop) -->
-    <aside class="sidebar">
-
-      <h1 class="logo">Códice do Jota</h1>
-
-      <nav class="menu desktop-only">
-        <button data-route="/">🏛️ Pórtico</button>
-        <button data-route="/talhoes">🌱 Talhões</button>
-        <button data-route="/herbario">🌿 Herbário</button>
-        <button data-route="/notas">📜 Arquivo</button>
-        <button data-route="/instrumentos">🧪 Instrumentos</button>
-      </nav>
-
-      <button id="themeToggle" class="theme-btn desktop-only">
-        🌙 Alternar Tema
-      </button>
-
-    </aside>
-
-    <!-- 📖 VIEW -->
-    <main id="view"></main>
-
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <div id="modal-body"></div>
+    </div>
   </div>
 
-  <!-- 📱 BOTTOM NAV (mobile/tablet) -->
-  <nav class="bottom-nav">
-
-    <button data-route="/">🏛️</button>
-    <button data-route="/talhoes">🌱</button>
-    <button data-route="/herbario">🌿</button>
-    <button data-route="/notas">📜</button>
-    <button data-route="/instrumentos">🧪</button>
-
-  </nav>
-
   <script type="module" src="js/app.js"></script>
-
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
+      navigator.serviceWorker.register('/service-worker.js');
     }
   </script>
-
 </body>
 </html>
