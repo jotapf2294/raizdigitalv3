@@ -79,3 +79,11 @@ label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
   max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;
 }
 .close { float: right; font-size: 1.5rem; cursor: pointer; }
+
+@media print {
+  body * { visibility: hidden; }
+  #print-area, #print-area * { visibility: visible; }
+  #print-area { position: absolute; left: 0; top: 0; width: 100%; }
+  .no-print { display: none !important; }
+  @page { size: A4; margin: 0; }
+}
