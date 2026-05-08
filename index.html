@@ -1,428 +1,115 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-pt">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Babe Forum Pro</title>
-  <script src="https://unpkg.com/dexie@3.2.4/dist/dexie.js"></script>
-  <style>
-    :root {
-      --bg: #FFF8F0; --card: #FFFFFF; --text: #5C4033;
-      --primary: #E8B4B8; --accent: #D4A574; --success: #5B8E7D;
-      --danger: #C44536; --border: #E5DDD5; --shadow: 0 2px 8px rgba(92,64,51,0.1);
-    }
-    [data-theme="dark"] {
-      --bg: #2C2419; --card: #3D3226; --text: #FFF8F0; --border: #5C4033;
-      --shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
-   .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
-    header { background: var(--card); padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); position: sticky; top: 20px; z-index: 100; }
-   .card { background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border); box-shadow: var(--shadow); }
-    input, textarea, select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); margin-bottom: 10px; font-family: inherit; }
-    textarea { resize: vertical; min-height: 100px; }
-   .btn { padding: 8px 16px; border: none; border-radius: 8px; background: var(--primary); color: white; cursor: pointer; font-weight: 600; transition: 0.2s; }
-   .btn:hover { opacity: 0.9; transform: translateY(-1px); }
-   .btn-sm { padding: 5px 10px; font-size: 0.85rem; }
-   .btn-danger { background: var(--danger); }
-   .btn-success { background: var(--success); }
-   .btn-ghost { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
-   .flex { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-   .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-   .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; color: white; font-weight: 600; }
-   .tag { background: var(--accent); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; margin-right: 5px; }
-   .post { cursor: pointer; transition: 0.2s; position: relative; }
-   .post:hover { transform: translateX(5px); }
-   .post.pinned { border-left: 4px solid var(--accent); }
-   .post-titulo { font-size: 1.2rem; font-weight: bold; color: var(--primary); margin: 5px 0; }
-   .post-meta { font-size: 0.8rem; opacity: 0.7; }
-   .post-stats { display: flex; gap: 15px; font-size: 0.85rem; margin-top: 10px; }
-   .vote-btn { cursor: pointer; user-select: none; padding: 2px 6px; border-radius: 4px; }
-   .vote-btn.active { background: var(--primary); color: white; }
-   .editor-toolbar { display: flex; gap: 5px; margin-bottom: 5px; }
-   .editor-toolbar button { padding: 5px 8px; font-size: 0.8rem; }
-   .img-preview { max-width: 200px; max-height: 200px; border-radius: 8px; margin-top: 10px; }
-   .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-   .modal.hidden { display: none; }
-   .modal-content { background: var(--card); padding: 30px; border-radius: 12px; max-width: 800px; width: 90%; max-height: 85vh; overflow-y: auto; }
-   .resposta { margin-left: 20px; padding: 15px; background: var(--bg); border-radius: 8px; margin-top: 10px; border-left: 3px solid var(--primary); }
-   .markdown img { max-width: 100%; border-radius: 8px; }
-   .markdown code { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-family: monospace; }
-   .markdown pre { background: var(--bg); padding: 10px; border-radius: 8px; overflow-x: auto; }
-   .filtros { display: grid; grid-template-columns: 1fr 1fr 2fr 1fr; gap: 10px; margin-bottom: 20px; }
-    @media (max-width: 768px) {.filtros { grid-template-columns: 1fr; } header { flex-direction: column; gap: 10px; } }
-  </style>
+    <meta charset="UTF-8">
+    <title>Minibook App - Criador de Fichas</title>
+    <style>
+        /* Estilos de Interface */
+        body { font-family: sans-serif; background: #e0e0e0; margin: 0; display: flex; }
+        .sidebar { width: 250px; background: #333; color: white; height: 100vh; padding: 20px; position: fixed; }
+        .main-content { margin-left: 290px; padding: 20px; display: flex; justify-content: center; width: 100%; }
+        
+        /* Folha A4 Otimizada para P&B */
+        .folha-a4 {
+            width: 210mm; min-height: 297mm;
+            background: white; border: 2px solid #000;
+            padding: 15mm 15mm 15mm 25mm; /* Margem para encadernar */
+            box-sizing: border-box; font-family: 'Georgia', serif;
+            position: relative; box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+
+        /* Estilo do Conteúdo */
+        .header { border-bottom: 3px solid #000; text-align: center; margin-bottom: 20px; }
+        .header h1 { margin: 5px 0; text-transform: uppercase; letter-spacing: 2px; }
+        
+        .grid-tecnico { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .box { border: 1px solid #000; padding: 10px; }
+        .box-title { background: #000; color: #fff; font-size: 9pt; font-weight: bold; padding: 3px 8px; text-transform: uppercase; margin: -10px -10px 10px -10px; }
+
+        .campo-editavel { outline: none; min-height: 20px; line-height: 1.6; }
+        
+        /* Controles */
+        button { width: 100%; padding: 10px; margin-bottom: 10px; cursor: pointer; background: #4CAF50; border: none; color: white; font-weight: bold; border-radius: 4px; }
+        button.print { background: #000; }
+
+        @media print {
+            .sidebar { display: none; }
+            .main-content { margin: 0; padding: 0; }
+            .folha-a4 { border: none; box-shadow: none; width: 100%; }
+            body { background: white; }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>🍰 Babe Forum Pro</h1>
-      <div class="flex">
-        <button class="btn btn-sm btn-success" onclick="exportar()">📦 Backup</button>
-        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importar(event)">
-        <button class="btn btn-sm" onclick="document.getElementById('import-file').click()">📂 Restore</button>
-        <span id="theme-toggle" style="cursor:pointer;font-size:1.5rem;">🌙</span>
-      </div>
-    </header>
 
-    <div class="card">
-      <div class="flex-between">
-        <h3>Criar Tópico</h3>
-        <button class="btn btn-sm" onclick="toggleForm()">➕ Novo</button>
-      </div>
-      <div id="form-criar" style="display:none; margin-top:15px;">
-        <select id="cat">
-          <option value="geral" data-cor="#E8B4B8">Geral</option>
-          <option value="receitas" data-cor="#D4A574">Receitas</option>
-          <option value="custos" data-cor="#5B8E7D">Custos</option>
-          <option value="ideias" data-cor="#F4D35E">Ideias</option>
-          <option value="bugs" data-cor="#C44536">Bugs</option>
-        </select>
-        <input type="text" id="titulo" placeholder="Título do tópico">
-        <input type="text" id="tags" placeholder="Tags separadas por vírgula: bolo,chocolate">
-        <div class="editor-toolbar">
-          <button type="button" class="btn-ghost" onclick="formatText('bold')"><b>B</b></button>
-          <button type="button" class="btn-ghost" onclick="formatText('italic')"><i>I</i></button>
-          <button type="button" class="btn-ghost" onclick="formatText('link')">🔗</button>
-          <button type="button" class="btn-ghost" onclick="formatText('code')">`</button>
-          <button type="button" class="btn-ghost" onclick="formatText('list')">• Lista</button>
+<div class="sidebar">
+    <h2>📚 Meu Minibook</h2>
+    <p>Clique e edite diretamente na ficha à direita.</p>
+    <button onclick="mudarModo('planta')">Nova Ficha: Planta</button>
+    <button onclick="mudarModo('tecnico')">Nova Ficha: Técnico</button>
+    <hr>
+    <button class="print" onclick="window.print()">🖨️ Imprimir Ficha</button>
+</div>
+
+<div class="main-content">
+    <div class="folha-a4" id="documento">
+        <div class="header">
+            <h1 contenteditable="true" id="titulo-principal">NOME DA PLANTA</h1>
+            <p contenteditable="true">FICHA TÉCNICA DE REGISTRO</p>
         </div>
-        <textarea id="conteudo" placeholder="Escreve aqui... Suporta **negrito**, *itálico*, `code`, [link](url)"></textarea>
-        <input type="file" id="imagem" accept="image/*" onchange="previewImagem(event)">
-        <img id="img-preview" class="img-preview" style="display:none">
-        <button class="btn" onclick="criarPost()">Publicar Tópico</button>
-      </div>
-    </div>
 
-    <div class="card">
-      <div class="filtros">
-        <select id="filtro-cat" onchange="renderPosts()">
-          <option value="">Todas Categorias</option>
-        </select>
-        <select id="filtro-ordem" onchange="renderPosts()">
-          <option value="recentes">Mais Recentes</option>
-          <option value="upvotes">Mais Upvotes</option>
-          <option value="views">Mais Vistos</option>
-        </select>
-        <input type="text" id="busca" placeholder="🔍 Buscar título, tag, conteúdo..." oninput="renderPosts()">
-        <button class="btn btn-sm" onclick="limparFiltros()">Limpar</button>
-      </div>
-    </div>
-
-    <div id="posts"></div>
-  </div>
-
-  <div id="modal" class="modal hidden">
-    <div class="modal-content">
-      <span onclick="fecharModal()" style="float:right;cursor:pointer;font-size:1.8rem;">&times;</span>
-      <div id="modal-body"></div>
-    </div>
-  </div>
-
-  <script>
-    const db = new Dexie('BabeForumProDB');
-    db.version(1).stores({
-      posts: '++id, categoria, titulo, conteudo, tags, upvotes, downvotes, views, pinned, created_at, updated_at, imagem',
-      respostas: '++id, post_id, conteudo, upvotes, created_at'
-    });
-
-    let userId = localStorage.getItem('userId') || 'user-' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('userId', userId);
-    let votos = JSON.parse(localStorage.getItem('votos') || '{}');
-
-    // Theme
-    const themeToggle = document.getElementById('theme-toggle');
-    const currentTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', currentTheme);
-    themeToggle.textContent = currentTheme === 'dark'? '☀️' : '🌙';
-    themeToggle.onclick = () => {
-      const theme = document.documentElement.getAttribute('data-theme') === 'dark'? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', theme);
-      localStorage.setItem('theme', theme);
-      themeToggle.textContent = theme === 'dark'? '☀️' : '🌙';
-    };
-
-    function toggleForm() {
-      const f = document.getElementById('form-criar');
-      f.style.display = f.style.display === 'none'? 'block' : 'none';
-    }
-
-    function formatText(type) {
-      const t = document.getElementById('conteudo');
-      const start = t.selectionStart, end = t.selectionEnd, val = t.value;
-      const sel = val.substring(start, end);
-      let rep = '';
-      if (type === 'bold') rep = `**${sel || 'texto'}**`;
-      if (type === 'italic') rep = `*${sel || 'texto'}*`;
-      if (type === 'link') rep = `[${sel || 'texto'}](url)`;
-      if (type === 'code') rep = `\`${sel || 'code'}\``;
-      if (type === 'list') rep = `\n- ${sel || 'item'}`;
-      t.value = val.substring(0, start) + rep + val.substring(end);
-      t.focus();
-    }
-
-    function previewImagem(e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          document.getElementById('img-preview').src = e.target.result;
-          document.getElementById('img-preview').style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    async function criarPost() {
-      const cat = document.getElementById('cat');
-      const categoria = cat.value;
-      const cor = cat.options[cat.selectedIndex].dataset.cor;
-      const titulo = document.getElementById('titulo').value;
-      const conteudo = document.getElementById('conteudo').value;
-      const tags = document.getElementById('tags').value.split(',').map(t => t.trim()).filter(t => t);
-      const imagem = document.getElementById('img-preview').src || null;
-
-      if (!titulo ||!conteudo) return alert('Preenche título e conteúdo');
-
-      await db.posts.add({
-        categoria, cor, titulo, conteudo, tags, imagem,
-        upvotes: 0, downvotes: 0, views: 0, pinned: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        autor: userId
-      });
-
-      document.getElementById('titulo').value = '';
-      document.getElementById('conteudo').value = '';
-      document.getElementById('tags').value = '';
-      document.getElementById('img-preview').style.display = 'none';
-      document.getElementById('imagem').value = '';
-      toggleForm();
-      renderPosts();
-    }
-
-    async function renderPosts() {
-      const cat = document.getElementById('filtro-cat').value;
-      const ordem = document.getElementById('filtro-ordem').value;
-      const busca = document.getElementById('busca').value.toLowerCase();
-
-      let posts = await db.posts.toArray();
-
-      // Filtros
-      if (cat) posts = posts.filter(p => p.categoria === cat);
-      if (busca) posts = posts.filter(p =>
-        p.titulo.toLowerCase().includes(busca) ||
-        p.conteudo.toLowerCase().includes(busca) ||
-        p.tags.some(t => t.toLowerCase().includes(busca))
-      );
-
-      // Ordenar: pinned primeiro
-      posts.sort((a, b) => {
-        if (a.pinned!== b.pinned) return b.pinned - a.pinned;
-        if (ordem === 'upvotes') return (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes);
-        if (ordem === 'views') return b.views - a.views;
-        return new Date(b.created_at) - new Date(a.created_at);
-      });
-
-      // Categorias no filtro
-      const cats = [...new Set((await db.posts.toArray()).map(p => p.categoria))];
-      document.getElementById('filtro-cat').innerHTML = '<option value="">Todas Categorias</option>' +
-        cats.map(c => `<option value="${c}">${c}</option>`).join('');
-
-      document.getElementById('posts').innerHTML = posts.map(p => `
-        <div class="card post ${p.pinned? 'pinned' : ''}" onclick="abrirPost(${p.id})">
-          ${p.pinned? '<div class="badge" style="background:var(--accent);position:absolute;top:10px;right:10px;">📌 Fixado</div>' : ''}
-          <div class="flex-between">
-            <div>
-              <span class="badge" style="background:${p.cor}">${p.categoria}</span>
-              ${p.tags.map(t => `<span class="tag">#${t}</span>`).join('')}
+        <div class="grid-tecnico">
+            <div class="box">
+                <div class="box-title">Identificação</div>
+                <div class="campo-editavel" contenteditable="true">
+                    <b>Nome Científico:</b> [Inserir]<br>
+                    <b>Origem:</b> [Inserir]<br>
+                    <b>Família:</b> [Inserir]
+                </div>
             </div>
-            <div class="post-meta">${new Date(p.created_at).toLocaleString('pt-PT')}</div>
-          </div>
-          <div class="post-titulo">${p.titulo}</div>
-          <div class="post-meta">${p.conteudo.substring(0, 150)}...</div>
-          <div class="post-stats">
-            <span class="vote-btn ${votos[p.id]==='up'? 'active' : ''}" onclick="votar(event, ${p.id}, 'up')">⬆️ ${p.upvotes}</span>
-            <span class="vote-btn ${votos[p.id]==='down'? 'active' : ''}" onclick="votar(event, ${p.id}, 'down')">⬇️ ${p.downvotes}</span>
-            <span>👁️ ${p.views}</span>
-            <span>💬 ${(await db.respostas.where('post_id').equals(p.id).count())}</span>
-          </div>
-        </div>
-      `).join('') || '<div class="card">Nenhum tópico encontrado. Cria o primeiro!</div>';
-    }
-
-    async function votar(e, postId, tipo) {
-      e.stopPropagation();
-      const post = await db.posts.get(postId);
-      const votoAtual = votos[postId];
-
-      if (votoAtual === tipo) {
-        delete votos[postId];
-        if (tipo === 'up') post.upvotes--;
-        else post.downvotes--;
-      } else {
-        if (votoAtual === 'up') post.upvotes--;
-        if (votoAtual === 'down') post.downvotes--;
-        votos[postId] = tipo;
-        if (tipo === 'up') post.upvotes++;
-        else post.downvotes++;
-      }
-
-      localStorage.setItem('votos', JSON.stringify(votos));
-      await db.posts.update(postId, { upvotes: post.upvotes, downvotes: post.downvotes });
-      renderPosts();
-    }
-
-    async function abrirPost(id) {
-      await db.posts.update(id, { views: (await db.posts.get(id)).views + 1 });
-      const p = await db.posts.get(id);
-      const respostas = await db.respostas.where('post_id').equals(id).toArray();
-      const isAutor = p.autor === userId;
-
-      document.getElementById('modal-body').innerHTML = `
-        <div class="flex-between">
-          <span class="badge" style="background:${p.cor}">${p.categoria}</span>
-          <div class="flex">
-            ${isAutor? `<button class="btn btn-sm" onclick="editarPost(${p.id})">✏️ Editar</button>
-                       <button class="btn btn-sm btn-danger" onclick="apagarPost(${p.id})">🗑️ Apagar</button>
-                       <button class="btn btn-sm btn-ghost" onclick="fixarPost(${p.id})">${p.pinned? '📌 Desafixar' : '📌 Fixar'}</button>` : ''}
-          </div>
-        <h2 style="color:var(--primary);margin:15px 0;">${p.titulo}</h2>
-        <div class="post-meta">Publicado ${new Date(p.created_at).toLocaleString('pt-PT')} • ${p.views} views</div>
-        <div style="margin:20px 0;" class="markdown">${formatarMarkdown(p.conteudo)}</div>
-        ${p.imagem? `<img src="${p.imagem}" style="max-width:100%;border-radius:8px;margin:10px 0;">` : ''}
-        <div>${p.tags.map(t => `<span class="tag">#${t}</span>`).join('')}</div>
-        <hr style="margin:20px 0;border:none;border-top:1px solid var(--border);">
-        <h3>Respostas (${respostas.length})</h3>
-        <div id="respostas-lista">
-          ${respostas.map(r => `
-            <div class="resposta">
-              <div class="post-meta">${new Date(r.created_at).toLocaleString('pt-PT')} • ⬆️ ${r.upvotes}</div>
-              <div style="margin-top:5px;" class="markdown">${formatarMarkdown(r.conteudo)}</div>
+            <div class="box">
+                <div class="box-title">Condições</div>
+                <div class="campo-editavel" contenteditable="true">
+                    <b>Luz:</b> [Sol/Sombra]<br>
+                    <b>Água:</b> [Frequência]<br>
+                    <b>Solo:</b> [pH e Tipo]
+                </div>
             </div>
-          `).join('')}
         </div>
-        <textarea id="nova-resposta" placeholder="Escreve uma resposta..." style="margin-top:15px;"></textarea>
-        <button class="btn" onclick="responder(${p.id})">Responder</button>
-      `;
-      document.getElementById('modal').classList.remove('hidden');
-      renderPosts();
-    }
 
-    async function responder(postId) {
-      const conteudo = document.getElementById('nova-resposta').value;
-      if (!conteudo) return;
-      await db.respostas.add({
-        post_id: postId, conteudo, upvotes: 0,
-        created_at: new Date().toISOString(),
-        autor: userId
-      });
-      abrirPost(postId);
-    }
+        <div class="box" style="min-height: 150px;">
+            <div class="box-title">Instruções e Cuidados</div>
+            <div class="campo-editavel" contenteditable="true">
+                • Passo 1: Descreva aqui...<br>
+                • Passo 2: Descreva aqui...
+            </div>
+        </div>
 
-    async function editarPost(id) {
-      const p = await db.posts.get(id);
-      document.getElementById('cat').value = p.categoria;
-      document.getElementById('titulo').value = p.titulo;
-      document.getElementById('tags').value = p.tags.join(', ');
-      document.getElementById('conteudo').value = p.conteudo;
-      if (p.imagem) {
-        document.getElementById('img-preview').src = p.imagem;
-        document.getElementById('img-preview').style.display = 'block';
-      }
-      fecharModal();
-      toggleForm();
-      window.editandoId = id;
-      document.querySelector('.btn').onclick = salvarEdicao;
-      document.querySelector('.btn').textContent = 'Salvar Edição';
-    }
+        <div class="box" style="margin-top: 20px; min-height: 300px; border-style: dashed;">
+            <div class="box-title">Esquema / Fotografia</div>
+            <p style="text-align: center; color: #888; margin-top: 100px;">
+                (Espaço reservado para colagem ou desenho manual)
+            </p>
+        </div>
 
-    async function salvarEdicao() {
-      const cat = document.getElementById('cat');
-      await db.posts.update(window.editandoId, {
-        categoria: cat.value,
-        cor: cat.options[cat.selectedIndex].dataset.cor,
-        titulo: document.getElementById('titulo').value,
-        tags: document.getElementById('tags').value.split(',').map(t => t.trim()).filter(t => t),
-        conteudo: document.getElementById('conteudo').value,
-        imagem: document.getElementById('img-preview').src || null,
-        updated_at: new Date().toISOString()
-      });
-      delete window.editandoId;
-      document.querySelector('.btn').onclick = criarPost;
-      document.querySelector('.btn').textContent = 'Publicar Tópico';
-      toggleForm();
-      renderPosts();
-    }
+        <div style="margin-top: 30px; border-top: 1px solid #000; padding-top: 10px;">
+            <b style="font-size: 10pt;">Observações Adicionais:</b>
+            <div contenteditable="true" style="border-bottom: 1px dotted #000; height: 30px;"></div>
+            <div contenteditable="true" style="border-bottom: 1px dotted #000; height: 30px;"></div>
+        </div>
+    </div>
+</div>
 
-    async function apagarPost(id) {
-      if (confirm('Apagar tópico e todas as respostas?')) {
-        await db.posts.delete(id);
-        await db.respostas.where('post_id').equals(id).delete();
-        fecharModal();
-        renderPosts();
-      }
+<script>
+    function mudarModo(tipo) {
+        const titulo = document.getElementById('titulo-principal');
+        if(tipo === 'planta') {
+            titulo.innerText = "NOME DA PLANTA";
+        } else {
+            titulo.innerText = "ESPECIFICAÇÃO TÉCNICA";
+        }
     }
+</script>
 
-    async function fixarPost(id) {
-      const p = await db.posts.get(id);
-      await db.posts.update(id, { pinned: p.pinned? 0 : 1 });
-      fecharModal();
-      renderPosts();
-    }
-
-    function fecharModal() {
-      document.getElementById('modal').classList.add('hidden');
-    }
-
-    function formatarMarkdown(texto) {
-      return texto
-       .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
-       .replace(/\*(.*?)\*/g, '<i>$1</i>')
-       .replace(/`([^`]+)`/g, '<code>$1</code>')
-       .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-       .replace(/^- (.+)/gm, '<li>$1</li>')
-       .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-       .replace(/\n/g, '<br>');
-    }
-
-    async function exportar() {
-      const data = {
-        posts: await db.posts.toArray(),
-        respostas: await db.respostas.toArray(),
-        exportDate: new Date().toISOString()
-      };
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `forum-backup-${Date.now()}.json`; a.click();
-    }
-
-    async function importar(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const text = await file.text();
-      const data = JSON.parse(text);
-      await db.transaction('rw', db.posts, db.respostas, async () => {
-        await db.posts.clear();
-        await db.respostas.clear();
-        await db.posts.bulkAdd(data.posts);
-        await db.respostas.bulkAdd(data.respostas);
-      });
-      alert('Backup restaurado!');
-      renderPosts();
-    }
-
-    function limparFiltros() {
-      document.getElementById('filtro-cat').value = '';
-      document.getElementById('busca').value = '';
-      document.getElementById('filtro-ordem').value = 'recentes';
-      renderPosts();
-    }
-
-    // Iniciar
-    renderPosts();
-  </script>
 </body>
 </html>
