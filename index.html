@@ -2,39 +2,41 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <title>Minibook App - Criador de Fichas</title>
+    <title>Minibook Pro - Criador e Arquivador</title>
     <style>
-        /* Estilos de Interface */
         body { font-family: sans-serif; background: #e0e0e0; margin: 0; display: flex; }
-        .sidebar { width: 250px; background: #333; color: white; height: 100vh; padding: 20px; position: fixed; }
-        .main-content { margin-left: 290px; padding: 20px; display: flex; justify-content: center; width: 100%; }
+        .sidebar { width: 280px; background: #2c3e50; color: white; height: 100vh; padding: 20px; position: fixed; overflow-y: auto; box-sizing: border-box; }
+        .main-content { margin-left: 280px; padding: 20px; display: flex; justify-content: center; width: calc(100% - 280px); }
         
-        /* Folha A4 Otimizada para P&B */
+        /* Folha A4 Otimizada P&B */
         .folha-a4 {
-            width: 210mm; min-height: 297mm;
-            background: white; border: 2px solid #000;
-            padding: 15mm 15mm 15mm 25mm; /* Margem para encadernar */
-            box-sizing: border-box; font-family: 'Georgia', serif;
+            width: 210mm; min-height: 297mm; background: white; border: 2px solid #000;
+            padding: 15mm 15mm 15mm 25mm; box-sizing: border-box; font-family: 'Georgia', serif;
             position: relative; box-shadow: 0 0 15px rgba(0,0,0,0.2);
         }
 
-        /* Estilo do Conteúdo */
         .header { border-bottom: 3px solid #000; text-align: center; margin-bottom: 20px; }
-        .header h1 { margin: 5px 0; text-transform: uppercase; letter-spacing: 2px; }
+        .header h1 { margin: 5px 0; text-transform: uppercase; letter-spacing: 2px; outline: none; }
         
-        .grid-tecnico { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .box { border: 1px solid #000; padding: 10px; }
+        .box { border: 1px solid #000; padding: 10px; margin-bottom: 15px; }
         .box-title { background: #000; color: #fff; font-size: 9pt; font-weight: bold; padding: 3px 8px; text-transform: uppercase; margin: -10px -10px 10px -10px; }
-
         .campo-editavel { outline: none; min-height: 20px; line-height: 1.6; }
+
+        /* Controles da App */
+        .btn-group { margin-top: 20px; border-top: 1px solid #555; padding-top: 20px; }
+        button { width: 100%; padding: 12px; margin-bottom: 10px; cursor: pointer; border: none; color: white; font-weight: bold; border-radius: 4px; transition: 0.2s; }
+        .btn-new { background: #27ae60; }
+        .btn-save { background: #2980b9; }
+        .btn-print { background: #000; }
+        .btn-delete { background: #c0392b; font-size: 8pt; margin-top: 10px; }
         
-        /* Controles */
-        button { width: 100%; padding: 10px; margin-bottom: 10px; cursor: pointer; background: #4CAF50; border: none; color: white; font-weight: bold; border-radius: 4px; }
-        button.print { background: #000; }
+        .lista-fichas { margin-top: 20px; }
+        .item-ficha { background: #34495e; padding: 10px; margin-bottom: 5px; cursor: pointer; border-radius: 4px; font-size: 10pt; }
+        .item-ficha:hover { background: #456789; }
 
         @media print {
             .sidebar { display: none; }
-            .main-content { margin: 0; padding: 0; }
+            .main-content { margin: 0; padding: 0; width: 100%; }
             .folha-a4 { border: none; box-shadow: none; width: 100%; }
             body { background: white; }
         }
@@ -43,70 +45,122 @@
 <body>
 
 <div class="sidebar">
-    <h2>📚 Meu Minibook</h2>
-    <p>Clique e edite diretamente na ficha à direita.</p>
-    <button onclick="mudarModo('planta')">Nova Ficha: Planta</button>
-    <button onclick="mudarModo('tecnico')">Nova Ficha: Técnico</button>
-    <hr>
-    <button class="print" onclick="window.print()">🖨️ Imprimir Ficha</button>
+    <h2>📚 Minibook Manager</h2>
+    <p style="font-size: 9pt; color: #bdc3c7;">As suas fichas ficam guardadas neste navegador.</p>
+    
+    <button class="btn-new" onclick="novaFicha()">➕ Criar Nova Ficha</button>
+    <button class="btn-save" onclick="guardarFicha()">💾 Guardar Alterações</button>
+    <button class="btn-print" onclick="window.print()">🖨️ Imprimir PDF</button>
+
+    <div class="lista-fichas" id="listaFichas">
+        <!-- Fichas guardadas aparecerão aqui -->
+    </div>
 </div>
 
 <div class="main-content">
     <div class="folha-a4" id="documento">
         <div class="header">
-            <h1 contenteditable="true" id="titulo-principal">NOME DA PLANTA</h1>
-            <p contenteditable="true">FICHA TÉCNICA DE REGISTRO</p>
+            <h1 contenteditable="true" id="f-titulo">NOME DO TÓPICO</h1>
+            <p contenteditable="true" id="f-subtitulo">FICHA TÉCNICA DE REGISTRO</p>
         </div>
 
-        <div class="grid-tecnico">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
             <div class="box">
-                <div class="box-title">Identificação</div>
-                <div class="campo-editavel" contenteditable="true">
-                    <b>Nome Científico:</b> [Inserir]<br>
-                    <b>Origem:</b> [Inserir]<br>
-                    <b>Família:</b> [Inserir]
+                <div class="box-title">Informações Gerais</div>
+                <div class="campo-editavel" contenteditable="true" id="f-info">
+                    <b>Referência:</b> [Inserir]<br>
+                    <b>Categoria:</b> [Botânica/Energia]<br>
+                    <b>Data:</b> [Inserir]
                 </div>
             </div>
             <div class="box">
-                <div class="box-title">Condições</div>
-                <div class="campo-editavel" contenteditable="true">
-                    <b>Luz:</b> [Sol/Sombra]<br>
-                    <b>Água:</b> [Frequência]<br>
-                    <b>Solo:</b> [pH e Tipo]
+                <div class="box-title">Requisitos Técnicos</div>
+                <div class="campo-editavel" contenteditable="true" id="f-req">
+                    <b>Luz/Energia:</b> [Detalhes]<br>
+                    <b>Manutenção:</b> [Frequência]<br>
+                    <b>Nota:</b> [Crítica]
                 </div>
             </div>
         </div>
 
-        <div class="box" style="min-height: 150px;">
-            <div class="box-title">Instruções e Cuidados</div>
-            <div class="campo-editavel" contenteditable="true">
-                • Passo 1: Descreva aqui...<br>
-                • Passo 2: Descreva aqui...
+        <div class="box" style="min-height: 200px;">
+            <div class="box-title">Conteúdo e Instruções Detalhadas</div>
+            <div class="campo-editavel" contenteditable="true" id="f-conteudo">
+                Escreva aqui o guia completo detalhado...
             </div>
         </div>
 
-        <div class="box" style="margin-top: 20px; min-height: 300px; border-style: dashed;">
-            <div class="box-title">Esquema / Fotografia</div>
-            <p style="text-align: center; color: #888; margin-top: 100px;">
-                (Espaço reservado para colagem ou desenho manual)
-            </p>
+        <div class="box" style="min-height: 250px; border-style: dashed;">
+            <div class="box-title">Esquema Visual</div>
+            <p style="text-align: center; color: #888; margin-top: 80px;">(Espaço para desenho ou foto)</p>
         </div>
-
-        <div style="margin-top: 30px; border-top: 1px solid #000; padding-top: 10px;">
-            <b style="font-size: 10pt;">Observações Adicionais:</b>
-            <div contenteditable="true" style="border-bottom: 1px dotted #000; height: 30px;"></div>
-            <div contenteditable="true" style="border-bottom: 1px dotted #000; height: 30px;"></div>
-        </div>
+        
+        <button class="btn-delete no-print" onclick="eliminarFichaAtual()">❌ Eliminar esta Ficha</button>
     </div>
 </div>
 
 <script>
-    function mudarModo(tipo) {
-        const titulo = document.getElementById('titulo-principal');
-        if(tipo === 'planta') {
-            titulo.innerText = "NOME DA PLANTA";
-        } else {
-            titulo.innerText = "ESPECIFICAÇÃO TÉCNICA";
+    let fichaActualId = null;
+
+    // Carregar lista ao abrir
+    window.onload = atualizarLista;
+
+    function novaFicha() {
+        fichaActualId = 'ficha_' + Date.now();
+        document.getElementById('f-titulo').innerText = "NOVO TÓPICO";
+        document.getElementById('f-info').innerHTML = "<b>Referência:</b> [Inserir]<br><b>Categoria:</b> [Botânica/Energia]<br><b>Data:</b> [Inserir]";
+        document.getElementById('f-req').innerHTML = "<b>Luz/Energia:</b> [Detalhes]<br><b>Manutenção:</b> [Frequência]<br><b>Nota:</b> [Crítica]";
+        document.getElementById('f-conteudo').innerText = "Escreva aqui o guia completo detalhado...";
+        alert("Nova ficha pronta para edição!");
+    }
+
+    function guardarFicha() {
+        if(!fichaActualId) fichaActualId = 'ficha_' + Date.now();
+        
+        const dados = {
+            titulo: document.getElementById('f-titulo').innerText,
+            subtitulo: document.getElementById('f-subtitulo').innerText,
+            info: document.getElementById('f-info').innerHTML,
+            req: document.getElementById('f-req').innerHTML,
+            conteudo: document.getElementById('f-conteudo').innerHTML
+        };
+
+        localStorage.setItem(fichaActualId, JSON.stringify(dados));
+        atualizarLista();
+        alert("Ficha guardada com sucesso!");
+    }
+
+    function atualizarLista() {
+        const lista = document.getElementById('listaFichas');
+        lista.innerHTML = "<h3>Suas Fichas:</h3>";
+        
+        for (let i = 0; i < localStorage.length; i++) {
+            const id = localStorage.key(i);
+            if(id.startsWith('ficha_')) {
+                const dados = JSON.parse(localStorage.getItem(id));
+                const div = document.createElement('div');
+                div.className = 'item-ficha';
+                div.innerText = dados.titulo;
+                div.onclick = () => carregarFicha(id);
+                lista.appendChild(div);
+            }
+        }
+    }
+
+    function carregarFicha(id) {
+        fichaActualId = id;
+        const dados = JSON.parse(localStorage.getItem(id));
+        document.getElementById('f-titulo').innerText = dados.titulo;
+        document.getElementById('f-subtitulo').innerText = dados.subtitulo;
+        document.getElementById('f-info').innerHTML = dados.info;
+        document.getElementById('f-req').innerHTML = dados.req;
+        document.getElementById('f-conteudo').innerHTML = dados.conteudo;
+    }
+
+    function eliminarFichaAtual() {
+        if(confirm("Tem certeza que deseja eliminar esta ficha?")) {
+            localStorage.removeItem(fichaActualId);
+            location.reload();
         }
     }
 </script>
