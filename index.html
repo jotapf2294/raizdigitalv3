@@ -2,53 +2,44 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <title>Minibook Pro - Edição Botânica</title>
+    <title>Minibook Pro - Ficha Botânica de Texto</title>
     <style>
         /* Interface da App */
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f4f4; margin: 0; display: flex; }
         .sidebar { width: 300px; background: #1a1a1a; color: white; height: 100vh; padding: 25px; position: fixed; overflow-y: auto; box-sizing: border-box; border-right: 4px solid #27ae60; }
         .main-content { margin-left: 300px; padding: 40px; display: flex; justify-content: center; width: calc(100% - 300px); }
         
-        /* Folha A4 - Design Premium P&B */
+        /* Folha A4 - Foco em Texto P&B */
         .folha-a4 {
             width: 210mm; min-height: 297mm; background: white; border: 1px solid #000;
             padding: 20mm 15mm 15mm 25mm; box-sizing: border-box; font-family: 'Georgia', serif;
             position: relative; color: #000;
         }
 
-        /* Moldura interna decorativa */
-        .folha-a4::after { content: ''; position: absolute; top: 10mm; left: 20mm; right: 10mm; bottom: 10mm; border: 1px solid #eee; pointer-events: none; }
-
         .header-plant { border-bottom: 5px solid #000; padding-bottom: 10px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
         .header-plant h1 { margin: 0; font-size: 28pt; text-transform: uppercase; letter-spacing: -1px; outline: none; }
         .header-plant span { font-style: italic; font-size: 12pt; border-bottom: 1px solid #000; outline: none; }
 
-        /* Blocos de Dados Especializados */
+        /* Dados Técnicos */
         .grid-data { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; border: 2px solid #000; margin-bottom: 25px; }
-        .data-item { border: 1px solid #000; padding: 10px; }
-        .data-label { display: block; font-size: 8pt; font-weight: bold; text-transform: uppercase; background: #000; color: #fff; margin: -10px -10px 10px -10px; padding: 2px 8px; }
+        .data-item { border: 1px solid #000; padding: 12px; }
+        .data-label { display: block; font-size: 8pt; font-weight: bold; text-transform: uppercase; background: #000; color: #fff; margin: -12px -12px 10px -12px; padding: 3px 8px; }
 
-        .care-section { margin-bottom: 30px; }
+        .care-section { margin-bottom: 35px; }
         .care-title { font-size: 14pt; font-weight: bold; text-transform: uppercase; border-left: 10px solid #000; padding-left: 10px; margin-bottom: 15px; }
-        .care-content { font-size: 11pt; line-height: 1.8; padding-left: 20px; outline: none; min-height: 100px; }
+        .care-content { font-size: 11.5pt; line-height: 1.8; padding-left: 10px; outline: none; min-height: 120px; text-align: justify; }
 
-        /* Área de Desenho */
-        .illustration-box { border: 2px dashed #000; height: 280px; display: flex; align-items: center; justify-content: center; position: relative; margin-top: 20px; }
-        .illustration-box::before { content: 'ESPAÇO PARA ILUSTRAÇÃO OU FOTO'; font-size: 9pt; color: #ccc; letter-spacing: 3px; }
-
-        /* Botões */
+        /* Botões laterais */
         button { width: 100%; padding: 12px; margin-bottom: 12px; cursor: pointer; border: none; color: white; font-weight: bold; border-radius: 4px; text-transform: uppercase; font-size: 9pt; }
         .btn-new { background: #27ae60; }
         .btn-save { background: #2980b9; }
         .btn-print { background: #000; }
-        .item-ficha { background: #333; padding: 12px; margin-bottom: 8px; cursor: pointer; border-left: 4px solid #27ae60; font-size: 10pt; transition: 0.3s; }
-        .item-ficha:hover { background: #444; padding-left: 20px; }
-
+        .item-ficha { background: #333; padding: 12px; margin-bottom: 8px; cursor: pointer; border-left: 4px solid #27ae60; font-size: 10pt; }
+        
         @media print {
             .sidebar, .btn-delete { display: none; }
             .main-content { margin: 0; padding: 0; width: 100%; }
             .folha-a4 { border: none; width: 100%; }
-            .folha-a4::after { border-color: #ddd; }
         }
     </style>
 </head>
@@ -56,69 +47,56 @@
 
 <div class="sidebar">
     <h2 style="color: #27ae60;">BOTANICAL APP</h2>
-    <p style="font-size: 8pt; color: #888; margin-bottom: 25px;">Gesto de Fichas para Minibook Profissional</p>
+    <p style="font-size: 8pt; color: #888; margin-bottom: 25px;">Versão Otimizada para Conteúdo Textual</p>
     
     <button class="btn-new" onclick="novaFicha()">➕ Nova Planta</button>
     <button class="btn-save" onclick="guardarFicha()">💾 Guardar Dados</button>
-    <button class="btn-print" onclick="window.print()">🖨️ Gerar PDF / Imprimir</button>
+    <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
 
     <div id="listaFichas" style="margin-top: 30px;">
-        <h4 style="color: #888; text-transform: uppercase; font-size: 8pt; letter-spacing: 1px;">Coleção Guardada:</h4>
+        <h4 style="color: #888; text-transform: uppercase; font-size: 8pt;">Suas Fichas:</h4>
     </div>
 </div>
 
 <div class="main-content">
     <div class="folha-a4">
         <div class="header-plant">
-            <h1 contenteditable="true" id="f-nome">NOME POPULAR</h1>
-            <span contenteditable="true" id="f-cientifico">Nome científico da espécie</span>
+            <h1 contenteditable="true" id="f-nome">NOME DA PLANTA</h1>
+            <span contenteditable="true" id="f-cientifico">Nome científico</span>
         </div>
 
         <div class="grid-data">
-            <div class="data-item">
-                <span class="data-label">Exposição Solar</span>
-                <div contenteditable="true" id="f-luz">Ex: Luz indireta / Meia-sombra</div>
-            </div>
-            <div class="data-item">
-                <span class="data-label">Frequência de Rega</span>
-                <div contenteditable="true" id="f-rega">Ex: 2x por semana</div>
-            </div>
-            <div class="data-item">
-                <span class="data-label">Humidade Ideal</span>
-                <div contenteditable="true" id="f-hum">Ex: Alta (60%+)</div>
-            </div>
-            <div class="data-item">
-                <span class="data-label">Temperatura</span>
-                <div contenteditable="true" id="f-temp">18°C — 28°C</div>
-            </div>
-            <div class="data-item">
-                <span class="data-label">Solo / Substrato</span>
-                <div contenteditable="true" id="f-solo">Rico em matéria orgânica</div>
-            </div>
-            <div class="data-item">
-                <span class="data-label">Dificuldade</span>
-                <div contenteditable="true" id="f-dif">Fácil / Iniciante</div>
-            </div>
+            <div class="data-item"><span class="data-label">Luz</span><div contenteditable="true" id="f-luz">[Inserir]</div></div>
+            <div class="data-item"><span class="data-label">Rega</span><div contenteditable="true" id="f-rega">[Inserir]</div></div>
+            <div class="data-item"><span class="data-label">Humidade</span><div contenteditable="true" id="f-hum">[Inserir]</div></div>
+            <div class="data-item"><span class="data-label">Temperatura</span><div contenteditable="true" id="f-temp">[Inserir]</div></div>
+            <div class="data-item"><span class="data-label">Solo</span><div contenteditable="true" id="f-solo">[Inserir]</div></div>
+            <div class="data-item"><span class="data-label">Dificuldade</span><div contenteditable="true" id="f-dif">[Inserir]</div></div>
         </div>
 
         <div class="care-section">
-            <div class="care-title">Guia de Cultivo e Propagação</div>
+            <div class="care-title">Instruções de Cultivo</div>
             <div class="care-content" contenteditable="true" id="f-conteudo">
-                Escreva aqui as instruções detalhadas de como cuidar, podar e multiplicar esta espécie. Use listas para facilitar a leitura no papel impresso.
+                Utilize este espaço para detalhar todo o processo de cuidado. Sem a imagem, você tem mais espaço para explicar podas, tipos de fertilizantes e épocas de floração.
             </div>
         </div>
 
         <div class="care-section">
-            <div class="care-title">Diagnóstico e Pragas Comuns</div>
-            <div class="care-content" contenteditable="true" id="f-pragas" style="min-height: 60px;">
-                Identifique sintomas como folhas amarelas ou pragas frequentes.
+            <div class="care-title">Manutenção e Nutrição</div>
+            <div class="care-content" contenteditable="true" id="f-manutencao">
+                Descreva o calendário de fertilização e os cuidados específicos com o substrato ao longo das estações.
             </div>
         </div>
 
-        <div class="illustration-box"></div>
+        <div class="care-section">
+            <div class="care-title">Problemas e Soluções</div>
+            <div class="care-content" contenteditable="true" id="f-problemas">
+                Liste aqui os sinais de alerta (folhas murchas, manchas, pragas) e as respetivas soluções técnicas.
+            </div>
+        </div>
 
-        <p style="text-align: right; font-size: 8pt; margin-top: 20px; font-style: italic; color: #555;">
-            Registro Botânico Individual — Minibook de Conhecimentos Úteis
+        <p style="text-align: right; font-size: 8pt; margin-top: 50px; font-style: italic; border-top: 1px solid #eee; padding-top: 10px;">
+            Documentação Técnica Individual — Minibook de Conhecimentos Úteis
         </p>
     </div>
 </div>
@@ -128,15 +106,14 @@
     window.onload = atualizarLista;
 
     function novaFicha() {
-        fichaActualId = 'botanica_' + Date.now();
+        fichaActualId = 'bot_txt_' + Date.now();
         document.getElementById('f-nome').innerText = "NOVA ESPÉCIE";
-        document.getElementById('f-cientifico').innerText = "Nome científico";
-        document.getElementById('f-conteudo').innerText = "Instruções de cultivo...";
-        alert("Ficha botânica limpa. Pode editar!");
+        document.getElementById('f-cientifico').innerText = "Espécie técnica";
+        alert("Ficha de texto pronta!");
     }
 
     function guardarFicha() {
-        if(!fichaActualId) fichaActualId = 'botanica_' + Date.now();
+        if(!fichaActualId) fichaActualId = 'bot_txt_' + Date.now();
         const dados = {
             nome: document.getElementById('f-nome').innerText,
             cientifico: document.getElementById('f-cientifico').innerText,
@@ -147,19 +124,20 @@
             solo: document.getElementById('f-solo').innerText,
             dif: document.getElementById('f-dif').innerText,
             conteudo: document.getElementById('f-conteudo').innerHTML,
-            pragas: document.getElementById('f-pragas').innerHTML
+            manutencao: document.getElementById('f-manutencao').innerHTML,
+            problemas: document.getElementById('f-problemas').innerHTML
         };
         localStorage.setItem(fichaActualId, JSON.stringify(dados));
         atualizarLista();
-        alert("Planta guardada na sua coleção!");
+        alert("Ficha guardada!");
     }
 
     function atualizarLista() {
         const lista = document.getElementById('listaFichas');
-        lista.innerHTML = '<h4 style="color: #888; text-transform: uppercase; font-size: 8pt; letter-spacing: 1px;">Coleção Guardada:</h4>';
+        lista.innerHTML = '<h4 style="color: #888; text-transform: uppercase; font-size: 8pt;">Suas Fichas:</h4>';
         for (let i = 0; i < localStorage.length; i++) {
             const id = localStorage.key(i);
-            if(id.startsWith('botanica_')) {
+            if(id.startsWith('bot_txt_')) {
                 const dados = JSON.parse(localStorage.getItem(id));
                 const div = document.createElement('div');
                 div.className = 'item-ficha';
@@ -182,7 +160,8 @@
         document.getElementById('f-solo').innerText = dados.solo;
         document.getElementById('f-dif').innerText = dados.dif;
         document.getElementById('f-conteudo').innerHTML = dados.conteudo;
-        document.getElementById('f-pragas').innerHTML = dados.pragas;
+        document.getElementById('f-manutencao').innerHTML = dados.manutencao;
+        document.getElementById('f-problemas').innerHTML = dados.problemas;
     }
 </script>
 
